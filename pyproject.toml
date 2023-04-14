@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "turtlemd"
+version = "2023.1.dev1"
+description = "A slow molecular dynamics library for testing"
+authors = ["Anders Lervik <andersle@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.261"
+black = "^23.3.0"
+mypy = "^1.2.0"
+
+[tool.ruff]
+line-length = 78
+select = ["F", "E", "W", "I001", "UP"]
+
+[tool.black]
+line-length = 78
+target-version = ["py310", "py311"]
+
+[tool.mypy]
+warn_unused_ignores = true
+show_error_codes = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
