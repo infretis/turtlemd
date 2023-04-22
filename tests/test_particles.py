@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 
-from turtlemd.particles import Particles, kinetic_energy, kinetic_temperature, pressure_tensor
+from turtlemd.particles import Particles
 
 
 def create_some_particles(masses):
@@ -75,19 +75,6 @@ def test_pairs():
     assert len(pairs) == n_pairs
 
 
-def test_select():
-    """Test that we can select particles."""
-    particles = create_some_particles([1, 2, 1, 2])
-    mass, _ = particles.select_mass_vel(selection=[0, 1])
-    for i, j in zip(mass, (1, 2)):
-        assert i[0] == j
-    mass, _ = particles.select_mass_vel(selection=[0, 2])
-    for i in mass:
-        assert i[0] == 1
-    mass, _ = particles.select_mass_vel(selection=[-1])
-    assert mass[0] == 2
-
-
 def test_linear_momentum():
     """Test calculation of linear momentum."""
     particles = create_some_particles([1, 0.5, 2, 1])
@@ -106,11 +93,11 @@ def test_zero_momentum():
     )
     vel = np.copy(particles.vel)
     particles.zero_momentum()
-    _, _, mom = particles.linear_momentum()
+    mom = particles.linear_momentum()
     assert np.allclose(mom, np.zeros(3))
     particles.vel = vel
     particles.zero_momentum(dim=[False, True, False])
-    _, _, mom = particles.linear_momentum()
+    mom = particles.linear_momentum()
     assert np.allclose(mom, [4.0, 0.0, 4.0])
 
 
@@ -121,7 +108,7 @@ def test_kinetic_energy():
         [[1.0, 1.0, 1.0], [2.1, 2.1, 2.1], [3.1, 3.1, 3.1], [4.1, 4.1, 4.1]]
     )
     correct = np.full((3, 3), 26.525)
-    kin_tensor, kin = kinetic_energy(particles)
+    kin_tensor, kin = particles.kinetic_energy()
     assert math.isclose(kin, 79.575)
     assert np.allclose(kin_tensor, correct)
     mom = particles.vel * particles.mass
@@ -129,14 +116,10 @@ def test_kinetic_energy():
     assert np.allclose(kin_tensor, kin_tensor2)
     particles = create_some_particles([10])
     particles.vel = np.array([1.0, 2.0, 3.0])
-    kin_tensor, kin = kinetic_energy(particles)
+    kin_tensor, kin = particles.kinetic_energy()
     assert math.isclose(70, kin)
     correct = np.array(
-        [
-            [ 5., 10., 15.],
-            [10., 20., 30.],
-            [15., 30., 45.]
-        ]
+        [[5.0, 10.0, 15.0], [10.0, 20.0, 30.0], [15.0, 30.0, 45.0]]
     )
     assert np.allclose(kin_tensor, correct)
 
@@ -145,28 +128,23 @@ def test_kinetic_temp():
     """Test calculation of kinetic temperature."""
     particles = create_some_particles([1, 2, 1, 0.01])
     particles.vel = np.ones_like(particles.pos)
-    temp1, temp2, _ = kinetic_temperature(particles, 1.0)
+    temp1, temp2, _ = particles.kinetic_temperature(1.0)
     assert math.isclose(temp1, 1.0025)
     for i in temp2:
         assert math.isclose(i, 1.0025)
-    temp1, temp2, _ = kinetic_temperature(particles, 1.0, dof=[1.0, 0.0, 0.0])
+    temp1, temp2, _ = particles.kinetic_temperature(1.0, dof=[1.0, 0.0, 0.0])
     assert math.isclose(temp1, 1.11388888889)
     for i, j in zip(temp2, (1.3366666667, 1.0025, 1.0025)):
         assert math.isclose(i, j)
+
 
 def test_pressure_tensors():
     """Test calculation of the pressure tensor and scalar."""
     particles = create_some_particles([1, 2, 3, 4])
     particles.vel = np.array(
-        [
-            [1., 1., 1.],
-            [2., 2., 2.],
-            [0.5, 0.5, 0.5],
-            [1., 1., 1.]
-        ]
+        [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [0.5, 0.5, 0.5], [1.0, 1.0, 1.0]]
     )
-    press, scalar = pressure_tensor(particles, 1.0)
+    press, scalar = particles.pressure_tensor(1.0)
     for i in press.ravel():
         assert math.isclose(i, 13.75)
     assert math.isclose(scalar, 13.75)
-

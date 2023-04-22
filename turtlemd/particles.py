@@ -2,19 +2,6 @@
 
 Tha particle list collects the mass, positions, velocities,
 forces, types, etc. for a collection of particles.
-
-We also define some particle methods here (methods that
-are intented to work on positions, velocities, etc. of
-particles):
-
-* :py:func:`.kinetic_energy`
-  Calculate the kinetic energy (tensor) of a selection of particles.
-
-* :py:func:`kinetic_temperature`
-  Calculate the kinetic temperature for a selection of particles.
-
-* :py:func:`pressure_tensor`
-  Calculate the pressure (tensor) for a particle list.
 """
 from collections.abc import Iterator
 
@@ -126,154 +113,111 @@ class Particles:
             for j, jtype in enumerate(self.ptype[i + 1 :]):
                 yield (i, i + 1 + j, itype, jtype)
 
-    def select_mass_vel(
-        self,
-        selection: list[int] | None = None,
-    ) -> tuple[np.ndarray, np.ndarray]:
-        """Return mass and velocity for a selection."""
-        if selection is None:
-            mass, vel = self.mass, self.vel
-        else:
-            mass, vel = self.mass[selection], self.vel[selection]
-        return mass, vel
+    def linear_momentum(self) -> np.ndarray:
+        """Return linear momentum of the particles"""
+        mom = np.sum(self.vel * self.mass, axis=0)
+        return mom
 
-    def linear_momentum(
-        self,
-        selection: list[int] | None = None,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Return mass, velocity and momentum for a particle selection"""
-        mass, vel = self.select_mass_vel(selection=selection)
-        mom = np.sum(vel * mass, axis=0)
-        return mass, vel, mom
-
-    def zero_momentum(
-        self,
-        selection: list[int] | None = None,
-        dim: list[bool] | None = None,
-    ):
-        """Set the linear momentum for a selection of particles to zero.
+    def zero_momentum(self, dim: list[bool] | None = None):
+        """Set the linear momentum for the particles to zero.
 
         Parameters
         ----------
-        selection : list of integers, optional
-            A list with indices of particles to use in the calculation.
         dim : list or None, optional
             If None, the momentum will be reset for ALL dimensions.
             If a list is given, the momentum will only be reset where
             it is True.
         """
-        mass, _, mom = self.linear_momentum(selection=selection)
+        mom = self.linear_momentum()
         if dim is not None:
             for i, reset in enumerate(dim):
                 if not reset:
                     mom[i] = 0
-        self.vel[selection] -= mom / mass.sum()
+        self.vel -= mom / self.mass.sum()
 
+    def kinetic_energy(self) -> tuple[np.ndarray, float]:
+        """Calculate kinetic energy of the particles.
 
-def kinetic_energy(
-    particles: Particles, selection: list[int] | None = None
-) -> tuple[np.ndarray, float]:
-    """Calculate kinetic energy for a selection of particles.
+        Returns
+        -------
+        out[0] : numpy.array
+            The kinetic energy tensor. Dimensionality is equal to (dim, dim)
+            where dim is the number of dimensions used in the velocities.
+        out[1] : float
+            The kinetic energy
+        """
+        mom = self.vel * self.mass
+        if len(self.mass) == 1:
+            kin = 0.5 * np.outer(mom, self.vel)
+        else:
+            kin = 0.5 * np.einsum("ij,ik->jk", mom, self.vel)
+        return kin, kin.trace()
 
-    Parameters
-    ----------
-    particles : object like :py:class:`.Particles`
-        This object represents the particles.
-    selection : list of integers, optional
-        A list with indices of particles to use in the calculation.
+    def kinetic_temperature(
+        self,
+        boltzmann: float,
+        dof: list[float] | None = None,
+        kin_tensor: np.ndarray | None = None,
+    ) -> tuple[np.floating, np.ndarray, np.ndarray]:
+        """Calculate the kinetic temperature of a collection of particles.
 
-    Returns
-    -------
-    out[0] : numpy.array
-        The kinetic energy tensor. Dimensionality is equal to (dim, dim)
-        where dim is the number of dimensions used in the velocities.
-    out[1] : float
-        The kinetic energy
-    """
-    mass, vel = particles.select_mass_vel(selection=selection)
-    mom = vel * mass
-    if len(mass) == 1:
-        kin = 0.5 * np.outer(mom, vel)
-    else:
-        kin = 0.5 * np.einsum("ij,ik->jk", mom, vel)
-    return kin, kin.trace()
+        Parameters
+        ----------
+        boltzmann : float
+            This is the Boltzmann factor/constant in correct units.
+        dof : list of floats, optional
+            The degrees of freedom to subtract. Its shape should
+            be equal to the number of dimensions.
+        kin_tensor : numpy.array optional
+            The kinetic energy tensor. If the kinetic energy tensor is not
+            given, it will be recalculated here.
 
+        Returns
+        -------
+        out[0] : float
+            The temperature averaged over all dimensions.
+        out[1] : numpy.array
+            The temperature for each spatial dimension.
+        out[2] : numpy.array
+            The kinetic energy tensor.
 
-def kinetic_temperature(
-    particles: Particles,
-    boltzmann: float,
-    dof: list[float] | None = None,
-    selection: list[int] | None = None,
-    kin_tensor: np.ndarray | None = None,
-) -> tuple[np.floating, np.ndarray, np.ndarray]:
-    """Calculate the kinetic temperature of a collection of particles.
+        """
+        ndof = self.npart * np.ones(self.vel[0].shape)
 
-    Parameters
-    ----------
-    particles : object like :py:class:`.Particles`
-        This object represents the particles.
-    boltzmann : float
-        This is the Boltzmann factor/constant in correct units.
-    dof : list of floats, optional
-        The degrees of freedom to subtract. Its shape should
-        be equal to the number of dimensions.
-    selection : list of integers, optional
-        A list with indices of particles to use in the calculation.
-    kin_tensor : numpy.array optional
-        The kinetic energy tensor. If the kinetic energy tensor is not
-        given, it will be recalculated here.
+        if kin_tensor is None:
+            kin_tensor, _ = self.kinetic_energy()
+        if dof is not None:
+            ndof = ndof - dof
+        temperature = (2.0 * kin_tensor.diagonal() / ndof) / boltzmann
+        return np.mean(temperature), temperature, kin_tensor
 
-    Returns
-    -------
-    out[0] : float
-        The temperature averaged over all dimensions.
-    out[1] : numpy.array
-        The temperature for each spatial dimension.
-    out[2] : numpy.array
-        The kinetic energy tensor.
+    def pressure_tensor(
+        self, volume: float, kin_tensor: np.ndarray | None = None
+    ) -> tuple[np.ndarray, float]:
+        """Calculate the pressure tensor.
 
-    """
-    mass, vel = particles.select_mass_vel(selection=selection)
-    npart = len(mass)
-    ndof = npart * np.ones(vel[0].shape)
+        The pressure tensor is obtained from the virial the kinetic
+        energy tensor.
 
-    if kin_tensor is None:
-        kin_tensor, _ = kinetic_energy(particles, selection=selection)
-    if dof is not None:
-        ndof = ndof - dof
-    temperature = (2.0 * kin_tensor.diagonal() / ndof) / boltzmann
-    return np.mean(temperature), temperature, kin_tensor
+        Parameters
+        ----------
+        volume : float
+            The volume of the simulation box the particles are in.
+        kin_tensor : numpy.array, optional
+            The kinetic energy tensor. It will be calculate if not
+            given here.
 
+        Returns
+        -------
+        out[0] : numpy.array
+            The symmetric pressure tensor, dimensions (`dim`, `dim`), where
+            `dim` = the number of dimensions considered in the simulation.
+        out[1] : float
+            The scalar pressure.
 
-def pressure_tensor(
-    particles: Particles, volume: float, kin_tensor: np.ndarray | None = None
-) -> tuple[np.ndarray, float]:
-    """Calculate the pressure tensor.
-
-    The pressure tensor is obtained from the virial the kinetic
-    energy tensor.
-
-    Parameters
-    ----------
-    particles : object like :py:class:`.Particles`
-        This object represents the particles.
-    volume : float
-        The volume of the simulation box the particles are in.
-    kin_tensor : numpy.array, optional
-        The kinetic energy tensor. It will be calculate if not
-        given here.
-
-    Returns
-    -------
-    out[0] : numpy.array
-        The symmetric pressure tensor, dimensions (`dim`, `dim`), where
-        `dim` = the number of dimensions considered in the simulation.
-    out[1] : float
-        The scalar pressure.
-
-    """
-    if kin_tensor is None:
-        kin_tensor, _ = kinetic_energy(particles, selection=None)
-    pressure = (particles.virial + 2.0 * kin_tensor) / volume
-    trace = pressure.trace() / float(particles.dim)
-    return pressure, trace
+        """
+        if kin_tensor is None:
+            kin_tensor, _ = self.kinetic_energy()
+        pressure = (self.virial + 2.0 * kin_tensor) / volume
+        trace = pressure.trace() / float(self.dim)
+        return pressure, trace

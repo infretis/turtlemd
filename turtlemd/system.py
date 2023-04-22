@@ -1,5 +1,5 @@
 """Definition of the simulation system."""
-
+from turtlemd.particles import Particles
 
 class System:
     """A system the MD is run on.
@@ -13,6 +13,8 @@ class System:
         The simulation box
     particles :
     """
+    box : str
+    particles : Particles
 
     def __init__(self):
         pass
