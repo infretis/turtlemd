@@ -27,35 +27,28 @@ class LennardJonesCut(Potential):
     We need one set of parameters for each pair of particle types.
     Parameters can be generated with a specific mixing rule.
 
-    Attributes
-    ----------
-    params : dict
-        The parameters for the potential. This dict is assumed to
-        contain parameters for pairs, i.e. for interactions.
-    _lj1 : dict
-        Lennard-Jones parameters used for calculation of the force.
-        Keys are the pairs (particle types) that may interact.
-        Calculated as: ``48.0 * epsilon * sigma**12``
-    _lj2 : dict
-        Lennard-Jones parameters used for calculation of the force.
-        Keys are the pairs (particle types) that may interact.
-        Calculated as: ``24.0 * epsilon * sigma**6``
-    _lj3 : dict
-        Lennard-Jones parameters used for calculation of the potential.
-        Keys are the pairs (particle types) that may interact.
-        Calculated as: ``4.0 * epsilon * sigma**12``
-    _lj4 : dict
-        Lennard-Jones parameters used for calculation of the potential.
-        Keys are the pairs (particle types) that may interact.
-        Calculated as: ``4.0 * epsilon * sigma**6``
-    _offset : dict
-        Potential values for shifting the potential if requested.
-        This is the potential evaluated at the cut-off.
-    _rcut2 : dict
-        The squared cut-off for each interaction type.
-        Keys are the pairs (particle types) that may interact.
-
+    Attributes:
+        params (dict): The parameters for the potential. This dict is assumed
+            to contain parameters for pairs, i.e., for interactions.
+            Parameters can be generated with a specific mixing rule.
+        _lj1 (dict): Lennard-Jones parameters used for calculation of
+            the force. Keys are the pairs (particle types) that may interact.
+            Calculated as: 48.0 * epsilon * sigma**12.
+        _lj2 (dict): Lennard-Jones parameters used for calculation of
+            the force. Keys are the pairs (particle types) that may interact.
+            Calculated as: 24.0 * epsilon * sigma**6.
+        _lj3 (dict): Lennard-Jones parameters used for calculation of the
+            potential. Keys are the pairs (particle types) that may interact.
+            Calculated as: 4.0 * epsilon * sigma**12.
+        _lj4 (dict): Lennard-Jones parameters used for calculation of the
+            potential. Keys are the pairs (particle types) that may interact.
+            Calculated as: 4.0 * epsilon * sigma**6.
+        _offset (dict): Potential values for shifting the potential.
+            This is the potential evaluated at the cut-off.
+        _rcut2 (dict): The squared cut-off for each interaction type.
+            Keys are the pairs (particle types) that may interact.
     """
+
     shift: bool
     _lj1: dict[tuple[int, int], float]
     _lj2: dict[tuple[int, int], float]
@@ -73,16 +66,11 @@ class LennardJonesCut(Potential):
     ):
         """Initialise the Lennard-Jones potential.
 
-        Parameters
-        ----------
-        dim : int, optional
-            The dimensionality to use.
-        shift : boolean, optional
-            Determines if the potential should be shifted or not.
-        mixing : string, optional
-            Determines how we should mix potential parameters.
-        desc : string, optional
-            Description of the potential.
+        Args:
+            dim: The dimensionality to use.
+            shift: Determines if the potential should be shifted or not.
+            mixing: Determines how we should mix potential parameters.
+            desc: Short description of the potential.
 
         """
         super().__init__(dim=dim, desc=desc)
@@ -99,10 +87,8 @@ class LennardJonesCut(Potential):
     def set_parameters(self, parameters: dict[Any, dict[str, float]]):
         """Set and update parameters.
 
-        Parameters
-        ----------
-        parameters : dict
-            The input pair parameters.
+        Args:
+            parameters : The potential parameters.
 
         """
         self.params = {}
@@ -134,10 +120,8 @@ class LennardJonesCut(Potential):
 
         It will generate a string with both pair and atom parameters.
 
-        Returns
-        -------
-        out : string
-            Table with the parameters of all interactions.
+        Returns:
+            out: Table with the parameters of all interactions.
 
         """
         strparam = [self.desc]
@@ -161,15 +145,11 @@ class LennardJonesCut(Potential):
     def potential(self, system):
         """Calculate the potential energy for the Lennard-Jones interaction.
 
-        Parameters
-        ----------
-        system : object like :py:class:`.System`
-            The system for which we calculate the potential.
+        Args:
+            system: The system for which we calculate the potential.
 
-        Returns
-        -------
-        out : float
-            The potential energy as a float.
+        Returns:
+            out: The potential energy as a float.
 
         """
         particles = system.particles
@@ -203,29 +183,14 @@ class LennardJonesCut(Potential):
         return pot
 
     def force(self, system):
-        """Calculate the force for the Lennard-Jones interaction.
+        """Calculate the Lennard-Jones force and virial.
 
-        We also calculate the virial here, since the force
-        is evaluated.
+        Args:
+            system: The system for which we calculate the force.
 
-        Parameters
-        ----------
-        system : object like :py:class:`.System`
-            The system for which we calculate the force.
-
-        Note
-        ----
-        The way the "dim" is used may be reconsidered. There is
-        already a self.dim parameter for the potential class.
-
-        Returns
-        -------
-        out[0] : numpy.array
-            The force as a numpy.array of the same shape as the
-            positions in particles.pos.
-        out[1] : numpy.array
-            The virial, as a symmetric matrix with dimensions (dim, dim)
-            where dim is given by the box.
+        Returns:
+            out[0]: The forces for the particles.
+            out[1]: The virial for the system.
 
         """
         particles = system.particles
@@ -259,34 +224,15 @@ class LennardJonesCut(Potential):
         return forces, virial
 
     def potential_and_force(self, system):
-        """Calculate the potential & force for the Lennard-Jones interaction.
+        """Calculate the Lennard Jones potential, force and virial.
 
-        We also calculate the virial here, since the force is evaluated.
+        Args:
+            system: The system to evaluate potential/force for.
 
-        Parameters
-        ----------
-        system : object like :py:class:`.System`
-            The system for which we calculate the potential and force.
-
-        Note
-        ----
-        Currently, the virial is only calculated for all the particles.
-        It is not calculated as a per atom virial. The virial per
-        atom might be useful to obtain a local pressure or stress,
-        however, this needs some consideration. Perhaps it's best to
-        fully implement this as a method of planes or something similar.
-
-        Returns
-        -------
-        out[0] : float
-            The potential energy as a float.
-        out[1] : numpy.array
-            The force as a numpy.array of the same shape as the
-            positions in `particles.pos`.
-        out[2] : numpy.array
-            The virial, as a symmetric matrix with dimensions (dim, dim)
-            where dim is given by the box.
-
+        Returns:
+            out[0]: The potential energy as a float.
+            out[1]: The force on the particles.
+            out[2]: The virial for the system.
         """
         particles = system.particles
         box = system.box
@@ -349,8 +295,7 @@ def _check_cutoff(rcut2, rsq, jtype, itype):
 
 
 def generate_pair_interactions(
-    parameters: dict[Any, dict[str, float]],
-    mixing: str
+    parameters: dict[Any, dict[str, float]], mixing: str
 ) -> dict[tuple[int, int], dict[str, float]]:
     """Generate pair parameters from atom parameters.
 
@@ -358,17 +303,12 @@ def generate_pair_interactions(
     either just integers -- which defines atom parameters -- or tuples
     which define pair interactions.
 
-    Parameters
-    ----------
-    parameters : dict
-        This dict contain the atom parameters.
-    mixing : string
-        Determines how we should mix pair interactions.
+    Args:
+        parameters: This dict contain the atom parameters.
+        mixing: Determines how we should mix pair interactions.
 
-    Returns
-    -------
-    pair_param : dict
-        A dictionary with the generated parameters.
+    Returns:
+        pair_param: A dictionary with the generated parameters.
 
     """
     atoms = []
@@ -480,32 +420,19 @@ def mix_parameters(
             r_{\text{c},ij} = \left(\frac{r_{\text{c},i}^6 \times
             r_{\text{c},j}^6}{2}\right)^{1/6}
 
+    Args:
+        epsilon_i: Epsilon parameter for a particle of type `i`.
+        sigma_i: Sigma parameter for a particle of type `i`.
+        rcut_i: Cut-off value for a particle of type `i`.
+        epsilon_j: Epsilon parameter for a particle of type `j`.
+        sigma_j: Sigma parameter for a particle of type `j`.
+        rcut_j: Cut-off value for a particle of type `j`.
+        mixing: Represents what kind of mixing that should be done.
 
-    Parameters
-    ----------
-    epsilon_i : float
-        Lennard-Jones epsilon parameter for a particle of type `i`.
-    sigma_i : float
-        Lennard-Jones sigma parameter for a particle of type `i`.
-    rcut_i : float
-        Lennard-Jones cut-off value for a particle of type `i`.
-    epsilon_j : float
-        Lennard-Jones epsilon parameter for a particle of type `j`.
-    sigma_j : float
-        Lennard-Jones sigma parameter for a particle of type `j`.
-    rcut_j : float
-        Lennard-Jones cut-off value for a particle of type `j`.
-    mixing :  string, optional
-        Represents what kind of mixing that should be done.
-
-    Returns
-    -------
-    out[0] : float
-        The mixed ``epsilon_ij`` parameter.
-    out[1] : float
-        The mixed ``sigma_ij`` parameter.
-    out[2] : float
-        The mixed ``rcut_ij`` parameter.
+    Returns:
+        out[0]: The mixed ``epsilon_ij`` parameter.
+        out[1]: The mixed ``sigma_ij`` parameter.
+        out[2]: The mixed ``rcut_ij`` parameter.
 
     """
     epsilon_ij = 0.0

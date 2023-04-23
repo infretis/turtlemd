@@ -40,23 +40,15 @@ class Box(ABC):
 
     This class defines a generic simulation box.
 
-    Attributes
-    ----------
-    dim : int
-        The dimensionality of the box.
-    periodic : list of bool
-        Specifies which dimensions for which we should apply
-        periodic boundaries.
-    low : numpy.array
-        The lower limits of the simulation box.
-    high : numpy.array
-        The upper limits of the simulation box.
-    length : numpy.array
-        The box lengths
-    ilength : numpy.array
-        The inverse box lengths.
-    box_matrix : numpy.array
-        2D matrix, representing the simulation cell.
+    Attributes:
+        dim (int): The dimensionality of the box.
+        periodic (List[bool]): Specifies which dimensions for
+            which we should apply periodic boundaries.
+        low (np.ndarray): The lower limits of the simulation box.
+        high (np.ndarray): The upper limits of the simulation box.
+        length (np.ndarray): The box lengths
+        ilength (np.ndarray): The inverse box lengths.
+        box_matrix (np.ndarray): 2D matrix, representing the simulation cell.
     """
 
     dim: int
@@ -69,7 +61,7 @@ class Box(ABC):
 
     def __init__(
         self,
-        size : np.ndarray,
+        size: np.ndarray,
         periodicity: list[bool] | None = None,
     ):
         """Initialise the Box class."""
@@ -108,17 +100,15 @@ class RectangularBox(Box):
     """An orthogonal box."""
 
     def pbc_wrap(self, pos: np.ndarray) -> np.ndarray:
-        """Apply periodic boundaries to the given position.
+        """Apply periodic boundaries to positions.
 
-        Parameters
-        ----------
-        pos : nump.array
-            Positions to apply periodic boundaries to.
+        Args:
+            pos (np.ndarray): Positions to apply periodic
+                boundaries to.
 
-        Returns
-        -------
-        out : numpy.array, same shape as parameter `pos`
-            The periodic-boundary wrapped positions.
+        Returns:
+            np.ndarray: The periodic-boundary wrapped positions,
+                same shape as parameter `pos`.
 
         """
         pbcpos = np.zeros_like(pos)
@@ -141,15 +131,12 @@ class RectangularBox(Box):
     def pbc_dist_matrix(self, distance: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to a matrix of distance vectors.
 
-        Parameters
-        ----------
-        distance : numpy.array
-            The distance vectors.
+        Args:
+            distance (np.ndarray): The distance vectors.
 
-        Returns
-        -------
-        out : numpy.array, same shape as the `distance` parameter
-            The pbc-wrapped distances.
+        Returns:
+            np.ndarray: The PBC-wrapped distances, same shape as the
+                `distance` parameter.
         """
         pbcdist = np.copy(distance)
         for i, (periodic, length, ilength) in enumerate(

@@ -9,6 +9,8 @@ import numpy as np
 
 
 class Particles:
+    """A class representing a collection of particles."""
+
     npart: int  # The number of particles in the list
     dim: int  # The number of dimensions (1-3)
     pos: np.ndarray  # Positions for the particles
@@ -23,10 +25,8 @@ class Particles:
     def __init__(self, dim: int = 3):
         """Initialize an empty particle list.
 
-        Parameters
-        ----------
-        dim : integer, optional
-            The number of dimensions we have.
+        Args:
+            dim: The number of dimensions we have.
         """
         self.dim = dim
         self.empty()
@@ -77,10 +77,8 @@ class Particles:
     def __iter__(self) -> Iterator[dict]:
         """Yield the properties of the particles.
 
-        Yields
-        ------
-        out : dict
-            The information in `self.pos`, `self.vel`, ... etc.
+        Yields:
+            out: The information in `self.pos`, `self.vel`, ... etc.
         """
         for i, pos in enumerate(self.pos):
             part = {
@@ -97,16 +95,11 @@ class Particles:
     def pairs(self) -> Iterator[tuple[int, int, int, int]]:
         """Iterate over all pairs of particles.
 
-        Yields
-        ------
-        out[0] : integer
-            The index for the first particle in the pair.
-        out[1] : integer
-            The index for the second particle in the pair.
-        out[2] : integer
-            The particle type of the first particle.
-        out[3] : integer
-            The particle type of the second particle.
+        Yields:
+            out[0]: The index for the first particle in the pair.
+            out[1]: The index for the second particle in the pair.
+            out[2]: The particle type of the first particle.
+            out[3]: The particle type of the second particle.
 
         """
         for i, itype in enumerate(self.ptype[:-1]):
@@ -114,19 +107,17 @@ class Particles:
                 yield (i, i + 1 + j, itype, jtype)
 
     def linear_momentum(self) -> np.ndarray:
-        """Return linear momentum of the particles"""
+        """Return linear momentum of the particles."""
         mom = np.sum(self.vel * self.mass, axis=0)
         return mom
 
     def zero_momentum(self, dim: list[bool] | None = None):
         """Set the linear momentum for the particles to zero.
 
-        Parameters
-        ----------
-        dim : list or None, optional
-            If None, the momentum will be reset for ALL dimensions.
-            If a list is given, the momentum will only be reset where
-            it is True.
+        Args:
+            dim: If None, the momentum will be reset for ALL dimensions.
+                If a list is given, the momentum will only be reset where
+                it is True.
         """
         mom = self.linear_momentum()
         if dim is not None:
@@ -138,13 +129,9 @@ class Particles:
     def kinetic_energy(self) -> tuple[np.ndarray, float]:
         """Calculate kinetic energy of the particles.
 
-        Returns
-        -------
-        out[0] : numpy.array
-            The kinetic energy tensor. Dimensionality is equal to (dim, dim)
-            where dim is the number of dimensions used in the velocities.
-        out[1] : float
-            The kinetic energy
+        Returns:
+            out[0] : The kinetic energy tensor. 
+            out[1] : The kinetic energy
         """
         mom = self.vel * self.mass
         if len(self.mass) == 1:
@@ -161,25 +148,17 @@ class Particles:
     ) -> tuple[np.floating, np.ndarray, np.ndarray]:
         """Calculate the kinetic temperature of a collection of particles.
 
-        Parameters
-        ----------
-        boltzmann : float
-            This is the Boltzmann factor/constant in correct units.
-        dof : list of floats, optional
-            The degrees of freedom to subtract. Its shape should
-            be equal to the number of dimensions.
-        kin_tensor : numpy.array optional
-            The kinetic energy tensor. If the kinetic energy tensor is not
-            given, it will be recalculated here.
-
-        Returns
-        -------
-        out[0] : float
-            The temperature averaged over all dimensions.
-        out[1] : numpy.array
-            The temperature for each spatial dimension.
-        out[2] : numpy.array
-            The kinetic energy tensor.
+        Args:
+            boltzmann: This is the Boltzmann factor/constant in correct units.
+            dof: The degrees of freedom to subtract. Its shape should
+                be equal to the number of dimensions.
+            kin_tensor: The kinetic energy tensor. If the kinetic energy
+                tensor is not given, it will be recalculated here.
+        
+        Returns:
+            out[0]: The temperature averaged over all dimensions.
+            out[1]: The temperature for each spatial dimension.
+            out[2]: The kinetic energy tensor.
 
         """
         ndof = self.npart * np.ones(self.vel[0].shape)
@@ -199,21 +178,14 @@ class Particles:
         The pressure tensor is obtained from the virial the kinetic
         energy tensor.
 
-        Parameters
-        ----------
-        volume : float
-            The volume of the simulation box the particles are in.
-        kin_tensor : numpy.array, optional
-            The kinetic energy tensor. It will be calculate if not
-            given here.
+        Args:
+            volume: The volume of the simulation box the particles are in.
+            kin_tensor: The kinetic energy tensor. It will be calculate if not
+                given here.
 
-        Returns
-        -------
-        out[0] : numpy.array
-            The symmetric pressure tensor, dimensions (`dim`, `dim`), where
-            `dim` = the number of dimensions considered in the simulation.
-        out[1] : float
-            The scalar pressure.
+        Returns:
+            out[0]: The symmetric pressure tensor. 
+            out[1] : The scalar pressure.
 
         """
         if kin_tensor is None:
