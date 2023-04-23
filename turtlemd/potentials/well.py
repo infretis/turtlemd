@@ -292,7 +292,7 @@ class DoubleWellWCA(Potential):
         for pair in particles.pairs():
             i, j, itype, jtype = pair
             if self.activate(itype, jtype):
-                delta = box.pbc_dist_coordinate(
+                delta = box.pbc_dist(
                     particles.pos[i] - particles.pos[j]
                 )
                 delr = np.sqrt(np.dot(delta, delta))
@@ -315,7 +315,7 @@ class DoubleWellWCA(Potential):
         for pair in particles.pairs():
             i, j, itype, jtype = pair
             if self.activate(itype, jtype):
-                delta = box.pbc_dist_coordinate(
+                delta = box.pbc_dist(
                     particles.pos[i] - particles.pos[j]
                 )
                 delr = np.sqrt(np.dot(delta, delta))

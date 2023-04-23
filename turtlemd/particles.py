@@ -20,7 +20,7 @@ class Particles:
     name: list[str]  # Names of the particles
     ptype: np.ndarray  # Types of the particles
 
-    def __init__(self, dim: int = 0):
+    def __init__(self, dim: int = 3):
         """Initialize an empty particle list.
 
         Parameters

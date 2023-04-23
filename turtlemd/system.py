@@ -1,5 +1,7 @@
 """Definition of the simulation system."""
+from turtlemd.box import Box
 from turtlemd.particles import Particles
+
 
 class System:
     """A system the MD is run on.
@@ -11,10 +13,13 @@ class System:
     ----------
     box : object like :py:class:`.Box`
         The simulation box
-    particles :
+    particles : object like :py:class:`.Particles`
+        The particles we simulate on.
     """
-    box : str
-    particles : Particles
 
-    def __init__(self):
-        pass
+    box: Box
+    particles: Particles
+
+    def __init__(self, box: Box, particles: Particles):
+        self.box = box
+        self.particles = particles

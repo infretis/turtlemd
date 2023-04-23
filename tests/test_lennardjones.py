@@ -1,6 +1,7 @@
 import math
 
 import pytest
+import numpy as np
 
 from turtlemd.potentials.lennardjones import (
     LennardJonesCut,
@@ -8,6 +9,36 @@ from turtlemd.potentials.lennardjones import (
     mix_parameters,
 )
 
+from turtlemd.box import RectangularBox
+from turtlemd.system import System
+from turtlemd.particles import Particles
+
+CORRECT_VPOT = 32480.0489507
+
+def create_test_system():
+    """Create a test system for calulcating the potential and force."""
+    box = RectangularBox(box_lengths=np.array([10, 10, 10]))
+    particles = Particles(dim=3)
+    particles.add_particle(
+        name='Ar',
+        pos=np.array([1.0, 1.0, 1.0]),
+        mass=1.0,
+        ptype=0
+    )
+    particles.add_particle(
+        name='Ar',
+        pos=np.array([1.5, 1.0, 1.0]),
+        mass=1.0,
+        ptype=0
+    )
+    particles.add_particle(
+        name='Ar',
+        pos=np.array([1.5, 1.5, 1.0]),
+        mass=1.0,
+        ptype=0
+    )
+    system = System(box, particles)
+    return system
 
 def test_mix_geometric():
     """Test geometric mixing rules."""
@@ -155,3 +186,16 @@ def test_initiate_lennard_jones():
     }
     pot.set_parameters(parameters)
     assert math.isclose(pot.params[0, 0]["rcut"], 0.0)
+
+
+def test_potential():
+    """Test that we can calculate the LJ potential."""
+    system = create_test_system()
+    pot = LennardJonesCut(dim=3, shift=True, mixing="geometric")
+    parameters = {
+        0: {'sigma': 1, 'epsilon': 1, 'rcut': 2.5},
+    }
+    pot.set_parameters(parameters)
+    vpot = pot.potential(system)
+    assert math.isclose(vpot, CORRECT_VPOT)
+
