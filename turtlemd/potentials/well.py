@@ -40,16 +40,14 @@ class DoubleWell(Potential):
     check that here.
 
     Attributes
-    ----------
-    params : dict
-        Contains the parameters. The keys are:
+        params (dict): Contains the parameters. The keys are:
 
-        * `a`: The ``a`` parameter for the potential.
-        * `b`: The ``b`` parameter for the potential.
-        * `c`: The ``c`` parameter for the potential.
+            * `a`: The ``a`` parameter for the potential.
+            * `b`: The ``b`` parameter for the potential.
+            * `c`: The ``c`` parameter for the potential.
 
-        These keys corresponds to the parameters in the potential,
-        :math:`V_\text{pot} = a x^4 - b (x - c)^2`.
+            These keys corresponds to the parameters in the potential,
+            :math:`V_\text{pot} = a x^4 - b (x - c)^2`.
 
     """
 
@@ -60,25 +58,12 @@ class DoubleWell(Potential):
         c: float = 0.0,
         desc: str = "1D double well potential",
     ):
-        """Initialise the one dimensional double well potential.
-
-        Parameters
-        ----------
-        a : float, optional
-            Parameter for the potential.
-        b : float, optional
-            Parameter for the potential.
-        c : float, optional
-            Parameter for the potential.
-        desc : string, optional
-            Description of the force field.
-
-        """
+        """Initialise the one dimensional double well potential."""
         super().__init__(dim=1, desc=desc)
         self.params = {"a": a, "b": b, "c": c}
 
     def potential(self, system: System) -> float:
-        """Evaluate the potential for the one-dimensional double well."""
+        """Evaluate the 1D double well potential."""
         pos = system.particles.pos
         v_pot = (
             self.params["a"] * pos**4
@@ -87,11 +72,12 @@ class DoubleWell(Potential):
         return v_pot.sum()
 
     def force(self, system: System) -> tuple[np.ndarray, np.ndarray]:
-        """Evaluate forces for the 1D double well potential."""
+        """Calculate the force for the 1D double well."""
         pos = system.particles.pos
         forces = -4.0 * (self.params["a"] * pos**3) + 2.0 * (
             self.params["b"] * (pos - self.params["c"])
         )
+        # Set virial to zero - we do not compute it here.
         return forces, np.zeros_like(system.particles.virial)
 
 
@@ -103,16 +89,14 @@ class RectangularWell(Potential):
     outside. The well is defined with a left and right boundary.
 
     Attributes
-    ----------
-    params : dict
-        The parameters for the potential. The keys are:
+        params (dict): The parameters for the potential. The keys are:
 
-        * `left`: Left boundary of the potential.
-        * `right`: Right boundary of the potential.
-        * `largenumber`: Value of potential outside the boundaries.
+            * `left`: Left boundary of the potential.
+            * `right`: Right boundary of the potential.
+            * `largenumber`: Value of potential outside the boundaries.
 
-        It is possible to define left > right, however, a warning will
-        be issued then.
+            It is possible to define left > right, however, a warning will
+            be issued then.
 
     """
 
@@ -123,20 +107,7 @@ class RectangularWell(Potential):
         largenumber: float = float("inf"),
         desc: str = "1D Rectangular well potential",
     ):
-        """Initialise the one-dimensional rectangular well.
-
-        Parameters
-        ----------
-        left : float, optional
-            The left boundary of the potential.
-        right : float, optional
-            The right boundary of the potential.
-        largenumber : float, optional
-            The value of the potential outside (left, right).
-        desc : string, optional
-            Description of the force field.
-
-        """
+        """Initialise the one-dimensional rectangular well."""
         super().__init__(dim=1, desc=desc)
         self.params = {
             "left": left,
@@ -182,27 +153,25 @@ class DoubleWellWCA(Potential):
     attributes `height`, `rzero` and `width` respectively.
 
     Attributes
-    ----------
-    params : dict
-        Contains the parameters. These are:
+        params (dict): Contains the parameters. These are:
 
-        * `height`: A float describing the "height" of the potential.
+            * `height`: A float describing the "height" of the potential.
 
-        * `height4`: A float equal to ``4.0 * height``.
-          (This variable is just included for convenience).
+            * `height4`: A float equal to ``4.0 * height``.
+              (This variable is just included for convenience).
 
-        * `rzero`: A float defining the two minimums. One is located at
-          ``rzero``, the other at ``rzero+2*width``.
+            * `rzero`: A float defining the two minimums. One is located at
+              ``rzero``, the other at ``rzero+2*width``.
 
 
-        * `width`: A float describing the "width" of the potential.
+            * `width`: A float describing the "width" of the potential.
 
-        * `width2`: A float equal to ``width*width`` (for convenience).
+            * `width2`: A float equal to ``width*width`` (for convenience).
 
-    types : set of tuples of integers.
-        A set defining what particle pair to consider
-        for this interaction.
+        types (tuple of ints): Indices defining what particles types
+            the potential is active for.
     """
+
     types: tuple[int, int]
 
     def __init__(
@@ -211,18 +180,7 @@ class DoubleWellWCA(Potential):
         dim: int = 3,
         desc: str = "A WCA double well potential",
     ):
-        """Initialise the Double Well WCA potential.
-
-        Parameters
-        ----------
-        types : tuple of ints
-            The types for which this potential is activated.
-        dim : int, optional
-            The dimensionality of the potential.
-        desc : string, optional
-            Description of the force field.
-
-        """
+        """Initialise the Double Well WCA potential."""
         super().__init__(dim=dim, desc=desc)
         self.params = {
             "height": 0.0,
@@ -237,12 +195,10 @@ class DoubleWellWCA(Potential):
     def set_parameters(self, parameters: dict[str, float]):
         """Add new potential parameters to the potential.
 
-        Parameters
-        ----------
-        parameters : dict
-            The new parameters, they are assume to be dicts on the form
-            ``{'types': set([(0,0)]), 'rzero': 1.0, 'width': 0.25,
-            'height': 6.0}``
+        Args:
+            parameters (dict): The new parameters, they are assume to be
+            dicts on the form:
+            ``{'rzero': 1.0, 'width': 0.25, 'height': 6.0}``.
 
         """
         for key in parameters:
@@ -261,14 +217,10 @@ class DoubleWellWCA(Potential):
         The minima are located at ``rzero`` & ``rzero + 2*width``.
         The maximum is located at ``rzero + width``.
 
-        Returns
-        -------
-        out[0] : float
-            Minimum number one, located at: ``rzero``.
-        out[1] : float
-            Minimum number two, located at: ``rzero + 2*width``.
-        out[2] : float
-            Maximum, located at: ``rzero + width``.
+        Returns:
+            out[0]: Minimum number one, located at: ``rzero``.
+            out[1]: Minimum number two, located at: ``rzero + 2*width``.
+            out[2]: Maximum, located at: ``rzero + width``.
 
         """
         rzero = self.params["rzero"]
@@ -292,9 +244,7 @@ class DoubleWellWCA(Potential):
         for pair in particles.pairs():
             i, j, itype, jtype = pair
             if self.activate(itype, jtype):
-                delta = box.pbc_dist(
-                    particles.pos[i] - particles.pos[j]
-                )
+                delta = box.pbc_dist(particles.pos[i] - particles.pos[j])
                 delr = np.sqrt(np.dot(delta, delta))
                 v_pot += (
                     height * (1.0 - (((delr - rwidth) ** 2) / width2)) ** 2
@@ -315,9 +265,7 @@ class DoubleWellWCA(Potential):
         for pair in particles.pairs():
             i, j, itype, jtype = pair
             if self.activate(itype, jtype):
-                delta = box.pbc_dist(
-                    particles.pos[i] - particles.pos[j]
-                )
+                delta = box.pbc_dist(particles.pos[i] - particles.pos[j])
                 delr = np.sqrt(np.dot(delta, delta))
                 diff = delr - rwidth
                 forceij = (

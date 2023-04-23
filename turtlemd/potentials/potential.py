@@ -16,40 +16,21 @@ LOGGER.addHandler(logging.NullHandler())
 
 
 class Potential(ABC):
-    """Base class for potential functions.
-
-    Attributes
-    ----------
-    desc : string
-        Short description of the potential.
-    dim : int
-        Represents the spatial dimensionality of the potential.
-
-    """
+    """Base class for potential functions."""
 
     desc: str  # Short description of the potential
     dim: int  # The dimensionality of the potential.
-    # Parameters for the potential.
+    # Parameters for the potential:
     params: Any
 
     def __init__(self, dim: int = 1, desc: str = ""):
-        """Initialise the potential.
-
-        Parameters
-        ----------
-        dim : int, optional
-            Represents the dimensionality.
-        desc : string, optional
-            Description of the potential function. Used to print out
-            information about the potential.
-
-        """
+        """Initialise the potential."""
         self.dim = dim
         self.desc = desc
         self.params = None
 
     def set_parameters(self, parameters: Any):
-        """Set parameters for the potential"""
+        """Set parameters for the potential."""
         msg = (
             "Set parameters used, but it is not implemented by the"
             ' potential - ignoring the given parameters "%"'
@@ -67,6 +48,11 @@ class Potential(ABC):
     def potential_and_force(
         self, system: System
     ) -> tuple[float, np.ndarray, np.ndarray]:
+        """Evaluate potential & force.
+
+        It may be more efficient to do both togehter. If not changed
+        in the subclasses, it will just use the other functions.
+        """
         vpot = self.potential(system)
         force, virial = self.force(system)
         return vpot, force, virial
