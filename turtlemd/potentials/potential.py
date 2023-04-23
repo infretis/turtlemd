@@ -5,6 +5,7 @@ This class is sub-classed in all potential functions.
 """
 import logging
 from abc import ABC, abstractmethod
+from typing import Any
 
 import numpy as np
 
@@ -14,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
-class PotentialFunction(ABC):
+class Potential(ABC):
     """Base class for potential functions.
 
     Attributes
@@ -23,16 +24,13 @@ class PotentialFunction(ABC):
         Short description of the potential.
     dim : int
         Represents the spatial dimensionality of the potential.
-    params : dict
-        The parameters for the potential. This dict defines,
-        on initiation, the parameters the potential will handle
-        and store. This is assumed to be set in the subclasses.
 
     """
 
     desc: str  # Short description of the potential
     dim: int  # The dimensionality of the potential.
-    params: dict[str, float]  # Parameters for the potential.
+    # Parameters for the potential.
+    params: Any
 
     def __init__(self, dim: int = 1, desc: str = ""):
         """Initialise the potential.
@@ -48,31 +46,15 @@ class PotentialFunction(ABC):
         """
         self.dim = dim
         self.desc = desc
-        self.params = {}
+        self.params = None
 
-    def update_parameters(self, parameters: dict[str, float]) -> bool:
-        """Update/set parameters."""
-        for key in parameters:
-            if key in self.params:
-                self.params[key] = parameters[key]
-            else:
-                msg = 'Could not find "%s" in parameters. Ignoring!'
-                LOGGER.warning(msg % key)
-        return self.check_parameters()
-
-    def check_parameters(self) -> bool:
-        """Check the consistency of the parameters.
-
-        Returns
-        -------
-        out : boolean
-            True if the check(s) pass.
-
-        """
-        if not self.params:
-            LOGGER.warning("No parameters are set for the potential")
-            return False
-        return True
+    def set_parameters(self, parameters: Any):
+        """Set parameters for the potential"""
+        msg = (
+            "Set parameters used, but it is not implemented by the"
+            ' potential - ignoring the given parameters "%"'
+        )
+        LOGGER.info(msg % parameters)
 
     @abstractmethod
     def potential(self, system: System) -> float:
