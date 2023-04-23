@@ -43,7 +43,7 @@ def test_interpret_box_size():
 def test_initiate_box():
     """Test that we can initiate a box"""
     size = np.array([[-5, 5], [11, 12]])
-    box = RectangularBox(box_lengths=size)
+    box = RectangularBox(size=size)
     assert np.allclose(box.low, np.array([-5, 11]))
     assert np.allclose(box.high, np.array([5, 12]))
     assert np.allclose(box.length, np.array([10, 1]))
@@ -54,19 +54,19 @@ def test_initiate_box():
 def test_volume():
     """Test that we can calculate the volume."""
     size = np.array([[-5, 5], [11, 12]])
-    box = RectangularBox(box_lengths=size)
+    box = RectangularBox(size=size)
     vol = box.volume()
     assert math.isclose(vol, 10.0)
     size = np.array([[-5, 5]])
-    box = RectangularBox(box_lengths=size)
+    box = RectangularBox(size=size)
     vol = box.volume()
     assert math.isclose(vol, 10.0)
     size = np.array([5])
-    box = RectangularBox(box_lengths=size)
+    box = RectangularBox(size=size)
     vol = box.volume()
     assert math.isclose(vol, 5.0)
     size = np.array([[-5, 5], [11, 12]])
-    box = RectangularBox(box_lengths=size, periodicity=[True, False])
+    box = RectangularBox(size=size, periodicity=[True, False])
     vol = box.volume()
     assert vol == float("inf")
 
@@ -74,7 +74,7 @@ def test_volume():
 def test_print(capfd):
     """Test that we can print box information"""
     size = np.array([5])
-    box = RectangularBox(box_lengths=size)
+    box = RectangularBox(size=size)
     print(box)
     captured = capfd.readouterr()
     assert "Hello, this is box." in captured.out
@@ -84,7 +84,7 @@ def test_print(capfd):
 def test_pbc_wrap():
     """Test that we can wrap coordinates."""
     length = np.array([10, 11, 12])
-    box = RectangularBox(box_lengths=length, periodicity=[False, True, True])
+    box = RectangularBox(size=length, periodicity=[False, True, True])
     pos = np.array(
         [
             [11, 10, 14],
@@ -102,7 +102,7 @@ def test_pbc_wrap():
 def test_pbc_dist_matrix():
     """Test that we can do pbc for a matrix"""
     length = np.array([10, 10, 10])
-    box = RectangularBox(box_lengths=length, periodicity=[False, True, True])
+    box = RectangularBox(size=length, periodicity=[False, True, True])
     dist = np.array(
         [
             [8.0, 7.0, 9.0],
@@ -123,13 +123,13 @@ def test_pbc_dist_matrix():
 def test_pbc_dist():
     """Test that we can do pbc for a single coordinate."""
     length = np.array([10])
-    box = RectangularBox(box_lengths=length, periodicity=[True])
+    box = RectangularBox(size=length, periodicity=[True])
     dist = np.array([7])
     pbc_dist = box.pbc_dist(dist)
     assert np.allclose(pbc_dist, np.array([-3]))
 
     length = np.array([2, 10, 10])
-    box = RectangularBox(box_lengths=length, periodicity=[True, True, False])
+    box = RectangularBox(size=length, periodicity=[True, True, False])
     pos1 = np.array([1, 5, 6])
     pos2 = np.array([1, -3, 100])
     dist = pos1 - pos2

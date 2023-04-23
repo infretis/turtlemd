@@ -9,17 +9,17 @@ LOGGER.addHandler(logging.NullHandler())
 
 
 def interpret_box_size(
-    box: np.ndarray,
+    size: np.ndarray,
     periodicity: list[bool] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[bool]]:
     """Figure out the input simulation box size."""
-    box = box.astype(float)
-    if box.ndim < 2:
-        high = np.copy(box)
+    size = size.astype(float)
+    if size.ndim < 2:
+        high = np.copy(size)
         low = np.zeros_like(high)
     else:
-        low = box[:, 0]
-        high = box[:, 1]
+        low = size[:, 0]
+        high = size[:, 1]
     length = high - low
     low[length == float("inf")] = -float("inf")
     high[length == float("inf")] = float("inf")
@@ -69,12 +69,12 @@ class Box(ABC):
 
     def __init__(
         self,
-        box_lengths: np.ndarray,
+        size : np.ndarray,
         periodicity: list[bool] | None = None,
     ):
         """Initialise the Box class."""
         self.low, self.high, self.length, self.periodic = interpret_box_size(
-            box_lengths, periodicity=periodicity
+            size, periodicity=periodicity
         )
         self.dim = len(self.periodic)
         assert len(self.periodic) == len(self.low)

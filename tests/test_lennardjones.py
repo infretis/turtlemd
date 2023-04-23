@@ -17,7 +17,7 @@ CORRECT_VPOT = 32480.0489507
 
 def create_test_system():
     """Create a test system for calulcating the potential and force."""
-    box = RectangularBox(box_lengths=np.array([10, 10, 10]))
+    box = RectangularBox(size=np.array([10, 10, 10]))
     particles = Particles(dim=3)
     particles.add_particle(
         name='Ar',
