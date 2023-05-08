@@ -130,7 +130,7 @@ class Particles:
         """Calculate kinetic energy of the particles.
 
         Returns:
-            out[0] : The kinetic energy tensor. 
+            out[0] : The kinetic energy tensor.
             out[1] : The kinetic energy
         """
         mom = self.vel * self.mass
@@ -154,7 +154,7 @@ class Particles:
                 be equal to the number of dimensions.
             kin_tensor: The kinetic energy tensor. If the kinetic energy
                 tensor is not given, it will be recalculated here.
-        
+
         Returns:
             out[0]: The temperature averaged over all dimensions.
             out[1]: The temperature for each spatial dimension.
@@ -184,7 +184,7 @@ class Particles:
                 given here.
 
         Returns:
-            out[0]: The symmetric pressure tensor. 
+            out[0]: The symmetric pressure tensor.
             out[1] : The scalar pressure.
 
         """

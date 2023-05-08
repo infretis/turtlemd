@@ -3,16 +3,18 @@ import logging
 from abc import ABC, abstractmethod
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
 def interpret_box_size(
-    size: np.ndarray,
+    size: ArrayLike,
     periodicity: list[bool] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[bool]]:
     """Figure out the input simulation box size."""
+    size = np.asarray(size)
     size = size.astype(float)
     if size.ndim < 2:
         high = np.copy(size)
@@ -42,7 +44,7 @@ class Box(ABC):
 
     Attributes:
         dim (int): The dimensionality of the box.
-        periodic (List[bool]): Specifies which dimensions for
+        periodic (list[bool]): Specifies which dimensions for
             which we should apply periodic boundaries.
         low (np.ndarray): The lower limits of the simulation box.
         high (np.ndarray): The upper limits of the simulation box.
@@ -61,7 +63,7 @@ class Box(ABC):
 
     def __init__(
         self,
-        size: np.ndarray,
+        size: ArrayLike,
         periodicity: list[bool] | None = None,
     ):
         """Initialise the Box class."""
