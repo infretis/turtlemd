@@ -3,13 +3,15 @@
 This module defines the generic class for potential functions.
 This class is sub-classed in all potential functions.
 """
+from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
-from turtlemd.system import System
+if TYPE_CHECKING:
+    from turtlemd.system import System
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
