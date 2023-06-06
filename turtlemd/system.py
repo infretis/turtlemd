@@ -1,5 +1,6 @@
 """Definition of the simulation system."""
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -20,7 +21,12 @@ class System:
     particles: Particles  # The particles in the system.
     potentials: list[Potential]
 
-    def __init__(self, box: Box, particles: Particles, potentials: list[Potential] | None=None):
+    def __init__(
+        self,
+        box: Box,
+        particles: Particles,
+        potentials: list[Potential] | None = None,
+    ):
         """Initialize a new system.
 
         Args:
@@ -32,7 +38,6 @@ class System:
         self.potentials = []
         if potentials is not None:
             self.potentials = [i for i in potentials]
-
 
     def potential_and_force(self):
         """Evaluate the potential energy and the force."""
@@ -54,7 +59,7 @@ class System:
         return v_pot, force, virial
 
     def potential(self):
-        """"Evaluate the potential energy."""
+        """ "Evaluate the potential energy."""
         v_pot = None
         for pot in self.potentials:
             v_poti = pot.potential(self)
