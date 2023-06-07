@@ -17,6 +17,7 @@ class Particles:
     vel: np.ndarray  # Velocities for the particles
     force: np.ndarray  # Force on the particles
     virial: np.ndarray  # Virial for the particles
+    v_pot: float | None  # The potential energy of the particles.
     mass: np.ndarray  # The mass of the particles
     imass: np.ndarray  # The inverse mass of the particles
     name: list[str]  # Names of the particles
@@ -34,6 +35,7 @@ class Particles:
     def empty(self):
         """Empty the particle list and remove all data."""
         self.npart = 0
+        self.v_pot = None
         self.pos = np.zeros((1, self.dim))
         self.vel = np.zeros_like(self.pos)
         self.force = np.zeros_like(self.pos)
