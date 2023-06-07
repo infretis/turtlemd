@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pytest
 
-from turtlemd.box import RectangularBox
+from turtlemd.box import Box
 from turtlemd.particles import Particles
 from turtlemd.potentials.lennardjones import (
     LennardJonesCut,
@@ -12,19 +12,22 @@ from turtlemd.potentials.lennardjones import (
 )
 from turtlemd.system import System
 
-
 CORRECT_VPOT = 32480.0489507
-CORRECT_FORCE = np.array([[-393024., -2880., 0.],
-                          [390144., -390144., 0.],
-                          [2880., 393024., 0.]])
-CORRECT_VIRIAL = np.array([[196512., 1440., 0.0],
-                           [1440., 196512., 0.0],
-                           [0.0, 0.0, 0.0]])
+CORRECT_FORCE = np.array(
+    [
+        [-393024.0, -2880.0, 0.0],
+        [390144.0, -390144.0, 0.0],
+        [2880.0, 393024.0, 0.0],
+    ]
+)
+CORRECT_VIRIAL = np.array(
+    [[196512.0, 1440.0, 0.0], [1440.0, 196512.0, 0.0], [0.0, 0.0, 0.0]]
+)
 
 
 def create_test_system():
     """Create a test system for calulcating the potential and force."""
-    box = RectangularBox(size=np.array([10, 10, 10]))
+    box = Box(high=np.array([10, 10, 10]))
     particles = Particles(dim=3)
     particles.add_particle(
         name="Ar", pos=np.array([1.0, 1.0, 1.0]), mass=1.0, ptype=0

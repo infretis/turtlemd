@@ -1,46 +1,42 @@
 """Define a simulation box."""
 import logging
-from abc import ABC, abstractmethod
 
 import numpy as np
-from numpy.typing import ArrayLike
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
-def interpret_box_size(
-    size: ArrayLike,
-    periodicity: list[bool] | None = None,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[bool]]:
-    """Figure out the input simulation box size."""
-    size = np.asarray(size)
-    size = size.astype(float)
-    if size.ndim < 2:
-        high = np.copy(size)
-        low = np.zeros_like(high)
+def guess_dimensionality(
+    low: np.ndarray | list[float] | list[int] | None = None,
+    high: np.ndarray | list[float] | list[int] | None = None,
+    periodic: list[bool] | None = None,
+) -> int:
+    dims = []
+    if low is not None:
+        dims.append(len(low))
+    if high is not None:
+        dims.append(len(high))
+    if periodic is not None:
+        dims.append(len(periodic))
+
+    if len(dims) == 0:
+        LOGGER.warning(
+            "Missing low/high/periodic parameters for box: assuming 1D"
+        )
+        return 1
     else:
-        low = size[:, 0]
-        high = size[:, 1]
-    length = high - low
-    low[length == float("inf")] = -float("inf")
-    high[length == float("inf")] = float("inf")
-    # Adjust box lengths for non-periodic dimensions:
-    if periodicity is not None:
-        for i, peri in enumerate(periodicity):
-            if not peri:
-                low[i] = -float("inf")
-                high[i] = float("inf")
-                length[i] = float("inf")
-    else:
-        periodicity = [True] * len(low)
-    return low, high, length, periodicity
+        if len(set(dims)) != 1:
+            LOGGER.error("Inconsistent box dimensions for low/high/periodic!")
+            raise ValueError(
+                "Inconsistent box dimensions for low/high/periodic!"
+            )
+        else:
+            return dims[0]  # They should all be equal, pick the first.
 
 
-class Box(ABC):
-    """A generic simulation box.
-
-    This class defines a generic simulation box.
+class Box:
+    """An orthogonal simulation box.
 
     Attributes:
         dim (int): The dimensionality of the box.
@@ -63,15 +59,35 @@ class Box(ABC):
 
     def __init__(
         self,
-        size: ArrayLike,
-        periodicity: list[bool] | None = None,
+        low: np.ndarray | list[float] | list[int] | None = None,
+        high: np.ndarray | list[float] | list[int] | None = None,
+        periodic: list[bool] | None = None,
     ):
-        """Initialise the Box class."""
-        self.low, self.high, self.length, self.periodic = interpret_box_size(
-            size, periodicity=periodicity
-        )
-        self.dim = len(self.periodic)
-        assert len(self.periodic) == len(self.low)
+        self.dim = guess_dimensionality(low=low, high=high, periodic=periodic)
+
+        if periodic is not None:
+            self.periodic = periodic
+        else:
+            self.periodic = [True] * self.dim
+
+        if low is not None:
+            self.low = np.asarray(low).astype(float)
+        else:
+            self.low = np.array(
+                [0.0 if i else -float("inf") for i in self.periodic]
+            )
+            LOGGER.warning("Set box low values: %s", self.low)
+
+        if high is not None:
+            self.high = np.asarray(high).astype(float)
+        else:
+            self.high = np.array(
+                [1.0 if i else float("inf") for i in self.periodic]
+            )
+            LOGGER.warning("Set box high values: %s", self.high)
+
+        self.length = self.high - self.low
+
         self.box_matrix = np.zeros((self.dim, self.dim))
         for i in range(self.dim):
             self.box_matrix[i, i] = self.length[i]
@@ -80,26 +96,6 @@ class Box(ABC):
     def volume(self) -> float:
         """Calculate volume of the simulation cell."""
         return np.linalg.det(self.box_matrix)
-
-    @abstractmethod
-    def pbc_wrap(self, pos: np.ndarray) -> np.ndarray:
-        """Apply periodic boundaries to the given positions."""
-
-    @abstractmethod
-    def pbc_dist_matrix(self, distance: np.ndarray) -> np.ndarray:
-        """Apply periodic boundaries to a matrix of distance vectors."""
-
-    @abstractmethod
-    def pbc_dist(self, distance: np.ndarray) -> np.ndarray:
-        """Apply periodic boundaries to a distance vector."""
-
-    def __str__(self) -> str:
-        """Return a string describing the box."""
-        return f"Hello, this is box. My matrix is: {self.box_matrix}"
-
-
-class RectangularBox(Box):
-    """An orthogonal box."""
 
     def pbc_wrap(self, pos: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to positions.
@@ -164,3 +160,7 @@ class RectangularBox(Box):
             else:
                 pbcdist[i] = distance[i]
         return pbcdist
+
+    def __str__(self) -> str:
+        """Return a string describing the box."""
+        return f"Hello, this is box. My matrix is: {self.box_matrix}"

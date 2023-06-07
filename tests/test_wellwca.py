@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pytest
 
-from turtlemd.box import RectangularBox
+from turtlemd.box import Box
 from turtlemd.particles import Particles
 from turtlemd.potentials.well import DoubleWellWCA
 from turtlemd.system import System
@@ -33,7 +33,7 @@ PARAMETERS = {
 
 def create_system(pos: list[list[float]] = POS1) -> System:
     """Create a test system."""
-    box = RectangularBox(size=[10, 10, 10])
+    box = Box(high=[10, 10, 10])
     system = System(box=box, particles=Particles(dim=box.dim))
     system.particles.add_particle(pos=pos[0], mass=1.0, name="Ar1", ptype=0)
     system.particles.add_particle(pos=pos[1], mass=1.0, name="Ar2", ptype=0)

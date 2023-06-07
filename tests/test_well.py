@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pytest
 
-from turtlemd.box import RectangularBox
+from turtlemd.box import Box
 from turtlemd.particles import Particles
 from turtlemd.potentials.potential import Potential
 from turtlemd.potentials.well import (
@@ -16,7 +16,7 @@ from turtlemd.system import System
 def create_test_system(n: int) -> System:
     """Create a test system for calulcating the potential and force."""
     particles = Particles(dim=1)
-    box = RectangularBox(size=[10])
+    box = Box(high=[10])
     for _ in range(n):
         particles.add_particle(np.zeros(1))
     particles.pos = np.random.random(particles.pos.shape)
