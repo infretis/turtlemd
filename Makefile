@@ -1,9 +1,13 @@
 .PHONY:	
 	clean
 	coverage
+	coverage-print
 
 coverage:
 	pytest --cov-report html --cov=turtlemd tests/
+
+coverage-print:
+	pytest --cov-report html --cov=turtlemd -rP tests/
  
 clean:
 	find -name \*.pyc -delete

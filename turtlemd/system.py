@@ -19,7 +19,7 @@ class System:
 
     box: Box  # The simulation box.
     particles: Particles  # The particles in the system.
-    potentials: list[Potential]
+    potentials: list[Potential]  # The force field.
 
     def __init__(
         self,
@@ -85,4 +85,4 @@ class System:
         return force, virial
 
     def get_dim(self):
-        return self.particles.dim
+        return self.box.dim

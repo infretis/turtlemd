@@ -4,14 +4,15 @@ This module defines the generic class for potential functions.
 This class is sub-classed in all potential functions.
 """
 from __future__ import annotations
+
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from turtlemd.system import System
+    from turtlemd.system import System  # pragma: no cover
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
@@ -35,7 +36,7 @@ class Potential(ABC):
         """Set parameters for the potential."""
         msg = (
             "Set parameters used, but it is not implemented by the"
-            ' potential - ignoring the given parameters "%"'
+            " potential - ignoring the given parameters: %s"
         )
         LOGGER.info(msg % parameters)
 

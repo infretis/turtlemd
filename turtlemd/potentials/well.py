@@ -205,7 +205,7 @@ class DoubleWellWCA(Potential):
             if key in self.params:
                 self.params[key] = parameters[key]
             else:
-                msg = 'Unknown parameter "%s" - ignored!'
+                msg = 'Ignored unknown parameter "%s"'
                 LOGGER.warning(msg % key)
         self.params["width2"] = self.params["width"] ** 2
         self.params["rwidth"] = self.params["rzero"] + self.params["width"]
@@ -229,7 +229,9 @@ class DoubleWellWCA(Potential):
 
     def activate(self, itype: int, jtype: int) -> bool:
         """Determine if we should calculate a interaction or not."""
-        return itype in self.types and jtype in self.types
+        return (itype == self.types[0] and jtype == self.types[1]) or (
+            jtype == self.types[0] and itype == self.types[1]
+        )
 
     def potential(self, system: System) -> float:
         """Calculate the potential energy."""
