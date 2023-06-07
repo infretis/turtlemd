@@ -1,32 +1,61 @@
-from turtlemd.integrators import Verlet, VelocityVerlet
-from turtlemd.box import Box
-from turtlemd.system import System
-from turtlemd.particles import Particles
-from turtlemd.potentials.well import DoubleWell
-
 import numpy as np
 import pytest
 
+from turtlemd.box import Box
+from turtlemd.integrators import VelocityVerlet, Verlet
+from turtlemd.particles import Particles
+from turtlemd.potentials.well import DoubleWell
+from turtlemd.system import System
 
 TISMOL_POS_VV = np.array(
     [
-        -1.00000000, -0.99843984, -0.99687973, -0.99531972,
-        -0.99375986, -0.99220019, -0.99064077, -0.98908165,
-        -0.98752287, -0.98596448, -0.98440654, -0.98284908,
-        -0.98129215, -0.97973581, -0.97818009, -0.97662505,
-        -0.97507074, -0.97351719, -0.97196445, -0.97041258,
-        -0.96886161
+        -1.00000000,
+        -0.99843984,
+        -0.99687973,
+        -0.99531972,
+        -0.99375986,
+        -0.99220019,
+        -0.99064077,
+        -0.98908165,
+        -0.98752287,
+        -0.98596448,
+        -0.98440654,
+        -0.98284908,
+        -0.98129215,
+        -0.97973581,
+        -0.97818009,
+        -0.97662505,
+        -0.97507074,
+        -0.97351719,
+        -0.97196445,
+        -0.97041258,
+        -0.96886161,
     ]
 )
 
 TISMOL_VEL_VV = np.array(
     [
-        0.78008020, 0.78006775, 0.78003045, 0.77996842,
-        0.77988179, 0.77977066, 0.77963517, 0.77947542,
-        0.77929154, 0.77908365, 0.77885188, 0.77859634,
-        0.77831715, 0.77801444, 0.77768833, 0.77733895,
-        0.77696642, 0.77657086, 0.77615240, 0.77571116,
-        0.77524727
+        0.78008020,
+        0.78006775,
+        0.78003045,
+        0.77996842,
+        0.77988179,
+        0.77977066,
+        0.77963517,
+        0.77947542,
+        0.77929154,
+        0.77908365,
+        0.77885188,
+        0.77859634,
+        0.77831715,
+        0.77801444,
+        0.77768833,
+        0.77733895,
+        0.77696642,
+        0.77657086,
+        0.77615240,
+        0.77571116,
+        0.77524727,
     ]
 )
 
@@ -37,7 +66,6 @@ CORRECT_POS_V = np.array(
 CORRECT_VEL_V = np.array(
     [0.78008018, 0.78006773, 0.78003043, 0.77996841, 0.77988177]
 )
-
 
 
 def create_test_system():
@@ -64,7 +92,7 @@ def test_velocity_verlet():
     for i in range(21):
         assert pytest.approx(system.particles.pos[0][0]) == TISMOL_POS_VV[i]
         assert pytest.approx(system.particles.vel[0][0]) == TISMOL_VEL_VV[i]
-        if i%2 == 0:
+        if i % 2 == 0:
             integrator.integration_step(system)
         else:
             integrator(system)  # Check that the integrator is callable.
