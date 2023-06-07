@@ -31,7 +31,7 @@ PARAMETERS = {
 }
 
 
-def create_system(pos=POS1):
+def create_system(pos: list[list[float]] = POS1) -> System:
     """Create a test system."""
     box = RectangularBox(size=[10, 10, 10])
     system = System(box=box, particles=Particles(dim=box.dim))
@@ -43,6 +43,7 @@ def create_system(pos=POS1):
 
 
 def test_parameters(caplog):
+    """Test that the parameters are calculated correctly."""
     pot = DoubleWellWCA(types=(0, 0))
     pot.set_parameters(PARAMETERS)
     assert pytest.approx(PARAMETERS["width"] ** 2) == pot.params["width2"]
@@ -59,6 +60,7 @@ def test_parameters(caplog):
 
 
 def test_min_max():
+    """Test that the min/max of the potential are correct."""
     pot = DoubleWellWCA(types=(0, 0))
     pot.set_parameters(PARAMETERS)
     min1, min2, max1 = pot.min_max()
@@ -68,6 +70,7 @@ def test_min_max():
 
 
 def test_activate():
+    """Test that the potential activates for correct types."""
     pot = DoubleWellWCA(types=(0, 0))
     assert pot.activate(0, 0)
     assert not pot.activate(0, 1)
@@ -79,6 +82,7 @@ def test_activate():
 
 
 def test_potential():
+    """Test that we can calulate the potential energy correctly."""
     system = create_system()
     pot = DoubleWellWCA(types=(0, 0))
     pot.set_parameters(PARAMETERS)
@@ -87,6 +91,7 @@ def test_potential():
 
 
 def test_force_and_potential():
+    """Test that we can calculate the force, virial, and potential."""
     system = create_system(pos=POS2)
     pot = DoubleWellWCA(types=(0, 0))
     pot.set_parameters(PARAMETERS)

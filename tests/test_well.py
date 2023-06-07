@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+import pytest
 
 from turtlemd.box import RectangularBox
 from turtlemd.particles import Particles
@@ -62,9 +63,9 @@ def test_doublewell_potential_force():
     assert vpot0 == vpot1
     assert vpot1 == vpot2
     assert force0 == force1[0][0]
-    assert np.allclose(force1, force2)
-    assert np.allclose(virial1, np.zeros_like(virial1))
-    assert np.allclose(virial1, virial2)
+    assert pytest.approx(force1) == force2
+    assert pytest.approx(virial1) == np.zeros_like(virial1)
+    assert pytest.approx(virial1) == virial2
     # Test for 11 particles:
     system = create_test_system(11)
     x = system.particles.pos
@@ -75,10 +76,10 @@ def test_doublewell_potential_force():
     vpot2, force2, virial2 = well.potential_and_force(system)
     assert vpot0.sum() == vpot1
     assert vpot1 == vpot2
-    assert np.allclose(force0, force1)
-    assert np.allclose(force1, force2)
-    assert np.allclose(virial1, np.zeros_like(virial1))
-    assert np.allclose(virial1, virial2)
+    assert pytest.approx(force0) == force1
+    assert pytest.approx(force1) == force2
+    assert pytest.approx(virial1) == np.zeros_like(virial1)
+    assert pytest.approx(virial1) == virial2
 
 
 def test_rectangular_well(caplog):
@@ -101,7 +102,7 @@ def test_rectangular_well(caplog):
     assert v_pot == 0.0
     with caplog.at_level(logging.WARNING):
         force, virial = well.force(system)
-        assert np.allclose(force, np.zeros_like(force))
-        assert np.allclose(virial, np.zeros_like(virial))
+        assert pytest.approx(force) == np.zeros_like(force)
+        assert pytest.approx(virial) == np.zeros_like(virial)
         assert "Calling force for 1D Rectangular well" in caplog.text
     assert "not implemented!" in caplog.text

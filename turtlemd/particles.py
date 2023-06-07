@@ -45,7 +45,7 @@ class Particles:
 
     def add_particle(
         self,
-        pos: np.ndarray,
+        pos: np.ndarray | list[float],
         vel: np.ndarray | None = None,
         force: np.ndarray | None = None,
         mass: float = 1.0,

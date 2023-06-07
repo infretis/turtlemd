@@ -1,6 +1,5 @@
-import math
-
 import numpy as np
+import pytest
 
 from turtlemd.box import RectangularBox, interpret_box_size
 
@@ -44,9 +43,9 @@ def test_initiate_box():
     """Test that we can initiate a box"""
     size = np.array([[-5, 5], [11, 12]])
     box = RectangularBox(size=size)
-    assert np.allclose(box.low, np.array([-5, 11]))
-    assert np.allclose(box.high, np.array([5, 12]))
-    assert np.allclose(box.length, np.array([10, 1]))
+    assert pytest.approx(box.low) == np.array([-5, 11])
+    assert pytest.approx(box.high) == np.array([5, 12])
+    assert pytest.approx(box.length) == np.array([10, 1])
     assert box.periodic[0]
     assert box.periodic[1]
 
@@ -56,15 +55,15 @@ def test_volume():
     size = np.array([[-5, 5], [11, 12]])
     box = RectangularBox(size=size)
     vol = box.volume()
-    assert math.isclose(vol, 10.0)
+    assert pytest.approx(vol) == 10.0
     size = np.array([[-5, 5]])
     box = RectangularBox(size=size)
     vol = box.volume()
-    assert math.isclose(vol, 10.0)
+    assert pytest.approx(vol) == 10.0
     size = np.array([5])
     box = RectangularBox(size=size)
     vol = box.volume()
-    assert math.isclose(vol, 5.0)
+    assert pytest.approx(vol) == 5.0
     size = np.array([[-5, 5], [11, 12]])
     box = RectangularBox(size=size, periodicity=[True, False])
     vol = box.volume()
@@ -96,7 +95,7 @@ def test_pbc_wrap():
         ]
     )
     pbc_pos = box.pbc_wrap(pos)
-    assert np.allclose(correct, pbc_pos)
+    assert pytest.approx(correct) == pbc_pos
 
 
 def test_pbc_dist_matrix():
@@ -116,8 +115,8 @@ def test_pbc_dist_matrix():
         ]
     )
     pbc_dist = box.pbc_dist_matrix(dist)
-    assert np.allclose(pbc_dist, correct)
-    assert not np.allclose(dist, pbc_dist)
+    assert pytest.approx(pbc_dist) == correct
+    assert not pytest.approx(dist) == pbc_dist
 
 
 def test_pbc_dist():
@@ -126,7 +125,7 @@ def test_pbc_dist():
     box = RectangularBox(size=length, periodicity=[True])
     dist = np.array([7])
     pbc_dist = box.pbc_dist(dist)
-    assert np.allclose(pbc_dist, np.array([-3]))
+    assert pytest.approx(pbc_dist) == np.array([-3])
 
     length = np.array([2, 10, 10])
     box = RectangularBox(size=length, periodicity=[True, True, False])
@@ -134,4 +133,4 @@ def test_pbc_dist():
     pos2 = np.array([1, -3, 100])
     dist = pos1 - pos2
     pbc_dist = box.pbc_dist(dist)
-    assert np.allclose(pbc_dist, np.array([0, -2, -94]))
+    assert pytest.approx(pbc_dist) == np.array([0, -2, -94])

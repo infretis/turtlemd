@@ -12,7 +12,14 @@ from turtlemd.potentials.lennardjones import (
 )
 from turtlemd.system import System
 
+
 CORRECT_VPOT = 32480.0489507
+CORRECT_FORCE = np.array([[-393024., -2880., 0.],
+                          [390144., -390144., 0.],
+                          [2880., 393024., 0.]])
+CORRECT_VIRIAL = np.array([[196512., 1440., 0.0],
+                           [1440., 196512., 0.0],
+                           [0.0, 0.0, 0.0]])
 
 
 def create_test_system():
@@ -46,9 +53,9 @@ def test_mix_geometric():
         rcut_j,
         mixing="geometric",
     )
-    assert math.isclose(mixed[0], math.sqrt(epsilon_i * epsilon_j))
-    assert math.isclose(mixed[1], math.sqrt(sigma_i * sigma_j))
-    assert math.isclose(mixed[2], math.sqrt(rcut_i * rcut_j))
+    assert pytest.approx(mixed[0]) == math.sqrt(epsilon_i * epsilon_j)
+    assert pytest.approx(mixed[1]) == math.sqrt(sigma_i * sigma_j)
+    assert pytest.approx(mixed[2]) == math.sqrt(rcut_i * rcut_j)
 
 
 def test_mix_arithmetic():
@@ -65,9 +72,9 @@ def test_mix_arithmetic():
         rcut_j,
         mixing="arithmetic",
     )
-    assert math.isclose(mixed[0], math.sqrt(epsilon_i * epsilon_j))
-    assert math.isclose(mixed[1], 0.5 * (sigma_i + sigma_j))
-    assert math.isclose(mixed[2], 0.5 * (rcut_i + rcut_j))
+    assert pytest.approx(mixed[0]) == math.sqrt(epsilon_i * epsilon_j)
+    assert pytest.approx(mixed[1]) == 0.5 * (sigma_i + sigma_j)
+    assert pytest.approx(mixed[2]) == 0.5 * (rcut_i + rcut_j)
 
 
 def test_mix_sixthpower():
@@ -92,9 +99,9 @@ def test_mix_sixthpower():
     epsilon_ij = math.sqrt(epsilon_i * epsilon_j) * si3 * sj3 / avgs6
     sigma_ij = avgs6 ** (1.0 / 6.0)
     rcut_ij = (0.5 * (rcut_i**6 + rcut_j**6)) ** (1.0 / 6.0)
-    assert math.isclose(mixed[0], epsilon_ij)
-    assert math.isclose(mixed[1], sigma_ij)
-    assert math.isclose(mixed[2], rcut_ij)
+    assert pytest.approx(mixed[0]) == epsilon_ij
+    assert pytest.approx(mixed[1]) == sigma_ij
+    assert pytest.approx(mixed[2]) == rcut_ij
 
 
 def test_unkown_mixing():
@@ -177,7 +184,7 @@ def test_initiate_lennard_jones():
         0: {"sigma": 1, "epsilon": 1, "rcut": 0.0},
     }
     pot.set_parameters(parameters)
-    assert math.isclose(pot.params[0, 0]["rcut"], 0.0)
+    assert pytest.approx(pot.params[0, 0]["rcut"]) == 0.0
 
 
 def test_potential():
@@ -189,4 +196,33 @@ def test_potential():
     }
     pot.set_parameters(parameters)
     vpot = pot.potential(system)
-    assert math.isclose(vpot, CORRECT_VPOT)
+    assert pytest.approx(vpot) == CORRECT_VPOT
+
+
+def test_force_and_potential():
+    """Test that we can calculate the force, virial, and potential."""
+    system = create_test_system()
+    pot = LennardJonesCut(dim=3, shift=True, mixing="geometric")
+    parameters = {
+        0: {"sigma": 1, "epsilon": 1, "rcut": 2.5},
+    }
+    pot.set_parameters(parameters)
+    force, virial = pot.force(system)
+    assert pytest.approx(force) == CORRECT_FORCE
+    assert pytest.approx(virial) == CORRECT_VIRIAL
+    vpot, force2, virial2 = pot.potential_and_force(system)
+    assert pytest.approx(force2) == CORRECT_FORCE
+    assert pytest.approx(virial2) == CORRECT_VIRIAL
+    assert pytest.approx(vpot) == CORRECT_VPOT
+
+
+def testprint(capsys):
+    """Test the __str__ method for printing."""
+    pot = LennardJonesCut(dim=3, shift=True, mixing="geometric")
+    parameters = {
+        0: {"sigma": 1, "epsilon": 1, "rcut": 2.5},
+    }
+    pot.set_parameters(parameters)
+    print(pot)
+    captured = capsys.readouterr()
+    assert "Lennard-Jones pair potential" in captured.out
