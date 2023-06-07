@@ -1,12 +1,11 @@
 """Definition of the simulation system."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from turtlemd.box import Box
     from turtlemd.particles import Particles
-    from turtlemd.potentials.potential import Potential
 
 
 class System:
@@ -19,13 +18,13 @@ class System:
 
     box: Box  # The simulation box.
     particles: Particles  # The particles in the system.
-    potentials: list[Potential]  # The force field.
+    potentials: list[Any]  # The force field.
 
     def __init__(
         self,
         box: Box,
         particles: Particles,
-        potentials: list[Potential] | None = None,
+        potentials: list[Any] | None = None,
     ):
         """Initialize a new system.
 
@@ -56,6 +55,11 @@ class System:
                 virial = viriali
             else:
                 virial += viriali
+        if force is not None:
+            self.particles.force = force
+        if virial is not None:
+            self.particles.virial = virial
+        self.particles.v_pot = v_pot
         return v_pot, force, virial
 
     def potential(self):
@@ -67,6 +71,7 @@ class System:
                 v_pot = v_poti
             else:
                 v_pot += v_poti
+        self.particles.v_pot = v_pot
         return v_pot
 
     def force(self):
@@ -82,6 +87,10 @@ class System:
                 virial = viriali
             else:
                 virial += viriali
+        if force is not None:
+            self.particles.force = force
+        if virial is not None:
+            self.particles.virial = virial
         return force, virial
 
     def get_dim(self):
