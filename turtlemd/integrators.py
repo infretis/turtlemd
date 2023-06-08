@@ -94,6 +94,72 @@ class VelocityVerlet(MDIntegrator):
         particles.vel += self.half_timestep * particles.force * imass
 
 
+class LangevinOverdamped(MDIntegrator):
+    """Overdamped version of the Langevin integrator.
+
+    For the `overdamped`_ Langevin integrator, the equations of motion are
+    integrated according to:
+
+    ``r(t + dt) = r(t) + dt * f(t)/m*gamma + dr``,
+
+    and
+
+    ``v(t + dt) = dr``
+
+    where ``dr`` are obtained from a normal distribution.
+
+    .. _overdamped:
+        https://en.wikipedia.org/wiki/Brownian_dynamics
+    """
+
+    gamma: float  # The gamma parameter
+    sigma: np.ndarray | None  # Standard deviation for random numbers
+    bddt: np.ndarray | None  # The factor dt/(m*gamma)
+    rgen: RandomState  # The random number generator to use here
+    beta: float  # The kB*T factor.
+
+    def __init__(
+        self, timestep: float, gamma: float, rgen: RandomState, beta: float
+    ):
+        super().__init__(
+            timestep=timestep,
+            description="Langevin overdamped integrator",
+            dynamics="stochastic",
+        )
+        self.gamma = gamma
+        self.sigma = None
+        self.rgen = rgen
+        self.bddt = None
+        self.beta = beta
+
+    def initiate_parameters(self, system: System):
+        """Initiate the parameters for the integrator.
+
+        The initiation needs the masses of the particles, so we need
+        the system to initiate all parameters.
+        """
+        imass = system.particles.imass
+        self.sigma = np.sqrt(
+            2.0 * self.timestep * imass / (self.beta * self.gamma)
+        )
+        self.bddt = self.timestep * imass / self.gamma
+
+    def integration_step(self, system: System):
+        """Do a single integration step."""
+        if self.sigma is None or self.bddt is None:
+            self.initiate_parameters(system)
+        system.force()
+        particles = system.particles
+        rands = self.rgen.normal(
+            loc=0.0,
+            scale=self.sigma,  # sigma is not None here.
+            size=particles.vel.shape,
+        )
+        particles.pos += self.bddt * particles.force + rands
+        particles.vel = rands
+        system.potential()
+
+
 # @dataclass
 # class LangevinParameterHigh:
 #    scale: np.ndarray = np.zeros(1)
