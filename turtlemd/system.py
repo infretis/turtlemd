@@ -3,9 +3,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
+
 if TYPE_CHECKING:
     from turtlemd.box import Box  # pragma: no cover
     from turtlemd.particles import Particles  # pragma: no cover
+
 
 
 class System:
@@ -36,41 +39,31 @@ class System:
         self.particles = particles
         self.potentials = []
         if potentials is not None:
-            self.potentials = [i for i in potentials]
+            self.potentials = list(potentials)
 
     def potential_and_force(self):
         """Evaluate the potential energy and the force."""
-        v_pot, force, virial = None, None, None
+        v_pot, force, virial = [], None, None
         for pot in self.potentials:
             v_poti, forcei, viriali = pot.potential_and_force(self)
-            if v_pot is None:
-                v_pot = v_poti
-            else:
-                v_pot += v_poti
+            v_pot.append(v_poti)
             if force is None:
-                force = forcei
-            else:
-                force += forcei
+                force = np.zeros_like(forcei)
             if virial is None:
-                virial = viriali
-            else:
-                virial += viriali
+                virial = np.zeros_like(viriali)
+            force += forcei
+            virial += viriali
         if force is not None:
             self.particles.force = force
         if virial is not None:
             self.particles.virial = virial
+        v_pot = sum(v_pot)
         self.particles.v_pot = v_pot
         return v_pot, force, virial
 
     def potential(self):
         """ "Evaluate the potential energy."""
-        v_pot = None
-        for pot in self.potentials:
-            v_poti = pot.potential(self)
-            if v_pot is None:
-                v_pot = v_poti
-            else:
-                v_pot += v_poti
+        v_pot = sum(pot.potential(self) for pot in self.potentials)
         self.particles.v_pot = v_pot
         return v_pot
 
@@ -80,18 +73,13 @@ class System:
         for pot in self.potentials:
             forcei, viriali = pot.force(self)
             if force is None:
-                force = forcei
-            else:
-                force += forcei
+                force = np.zeros_like(forcei)
             if virial is None:
-                virial = viriali
-            else:
-                virial += viriali
+                virial = np.zeros_like(viriali)
+            force += forcei
+            virial += viriali
         if force is not None:
             self.particles.force = force
         if virial is not None:
             self.particles.virial = virial
         return force, virial
-
-    def get_dim(self):
-        return self.box.dim

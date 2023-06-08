@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from turtlemd.box import Box
 from turtlemd.particles import Particles
@@ -28,3 +29,31 @@ def test_potential():
     system = System(box=box, particles=particles, potentials=potentials)
     vpot = system.potential()
     assert pytest.approx(vpot) == -9.0
+
+
+def test_force():
+    """Test that we can evaluate the force via the system."""
+    box = Box()
+    particles = Particles()
+    particles.add_particle(
+        pos=[1.0],
+    )
+    potentials = [DoubleWell(a=1, b=3, c=0.0), DoubleWell(a=1, b=4, c=0.0)]
+    system = System(box=box, particles=particles, potentials=potentials)
+    force, virial = system.force()
+    assert pytest.approx(force) == np.full_like(force, 6.0)
+    assert pytest.approx(virial) == np.zeros_like(virial)
+
+
+def test_potential_and_force():
+    box = Box()
+    particles = Particles()
+    particles.add_particle(
+        pos=[1.0],
+    )
+    potentials = [DoubleWell(a=1, b=3, c=0.0), DoubleWell(a=1, b=5, c=0.0)]
+    system = System(box=box, particles=particles, potentials=potentials)
+    v_pot, force, virial = system.potential_and_force()
+    assert pytest.approx(v_pot) == -18.0
+    assert pytest.approx(force) == np.full_like(force, 8)
+    assert pytest.approx(virial) == np.zeros_like(virial)
