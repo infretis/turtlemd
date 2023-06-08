@@ -1,3 +1,4 @@
+"""Test the simulation box."""
 import logging
 
 import numpy as np

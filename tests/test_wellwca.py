@@ -1,3 +1,4 @@
+"""Test the DoubleWellWCA potential."""
 import logging
 
 import numpy as np
@@ -31,10 +32,12 @@ PARAMETERS = {
 }
 
 
-def create_system(pos: list[list[float]] = POS1) -> System:
+def create_system(pos: list[list[float]] | None = None) -> System:
     """Create a test system."""
     box = Box(high=[10, 10, 10])
     system = System(box=box, particles=Particles(dim=box.dim))
+    if pos is None:
+        pos = POS1
     system.particles.add_particle(pos=pos[0], mass=1.0, name="Ar1", ptype=0)
     system.particles.add_particle(pos=pos[1], mass=1.0, name="Ar2", ptype=0)
     system.particles.add_particle(pos=pos[2], mass=1.0, name="X", ptype=1)
@@ -52,7 +55,7 @@ def test_parameters(caplog):
         == pot.params["rwidth"]
     )
     assert pytest.approx(PARAMETERS["height"] * 4) == pot.params["height4"]
-    param = {key: val for key, val in PARAMETERS.items()}
+    param = PARAMETERS.copy()
     param["extra"] = 123.0
     with caplog.at_level(logging.WARNING):
         pot.set_parameters(param)

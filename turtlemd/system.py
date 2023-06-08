@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from turtlemd.particles import Particles  # pragma: no cover
 
 
-
 class System:
     """A system the MD is run on.
 

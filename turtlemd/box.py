@@ -12,6 +12,7 @@ def guess_dimensionality(
     high: np.ndarray | list[float] | list[int] | None = None,
     periodic: list[bool] | None = None,
 ) -> int:
+    """Figure out the number of dimensions from the box input."""
     dims = []
     if low is not None:
         dims.append(len(low))
@@ -25,14 +26,10 @@ def guess_dimensionality(
             "Missing low/high/periodic parameters for box: assuming 1D"
         )
         return 1
-    else:
-        if len(set(dims)) != 1:
-            LOGGER.error("Inconsistent box dimensions for low/high/periodic!")
-            raise ValueError(
-                "Inconsistent box dimensions for low/high/periodic!"
-            )
-        else:
-            return dims[0]  # They should all be equal, pick the first.
+    if len(set(dims)) != 1:
+        LOGGER.error("Inconsistent box dimensions for low/high/periodic!")
+        raise ValueError("Inconsistent box dimensions for low/high/periodic!")
+    return dims[0]  # They should all be equal, pick the first.
 
 
 class Box:

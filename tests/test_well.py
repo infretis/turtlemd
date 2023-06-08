@@ -1,3 +1,4 @@
+"""Test the well potentials."""
 import logging
 
 import numpy as np
@@ -25,6 +26,7 @@ def create_test_system(n: int) -> System:
 
 
 def test_init_doublewell():
+    """Test initiation of the double well potential."""
     well = DoubleWell(a=1.0, b=2.0, c=-1.0)
     assert well.desc == "1D double well potential"
     assert isinstance(well, Potential)
@@ -33,6 +35,7 @@ def test_init_doublewell():
 
 
 def test_set_parameters(caplog):
+    """Test the generic set parameters method."""
     with caplog.at_level(logging.INFO):
         well = DoubleWell(a=0.0, b=0.0, c=0.0)
         well.set_parameters(parameters="this-is-just-ignored")
@@ -41,6 +44,7 @@ def test_set_parameters(caplog):
 
 
 def test_str(capsys):
+    """Test the generit __str__ method of potentials."""
     well = DoubleWell(a=1.0, b=2.0, c=3.0)
     print(well)
     captured = capsys.readouterr()
@@ -48,6 +52,7 @@ def test_str(capsys):
 
 
 def test_doublewell_potential_force():
+    """Test the force calculation for the DoubleWell potential."""
     well = DoubleWell(a=1.0, b=2.0, c=3.0)
     a = well.params["a"]
     b = well.params["b"]
@@ -83,6 +88,7 @@ def test_doublewell_potential_force():
 
 
 def test_rectangular_well(caplog):
+    """Test the RectangularWell potential."""
     with caplog.at_level(logging.WARNING):
         RectangularWell(left=124, right=123)
         assert "Setting left >= right in RectangularWell" in caplog.text

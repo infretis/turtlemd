@@ -1,3 +1,4 @@
+"""Test the Lennars-Jones potential."""
 import math
 
 import numpy as np

@@ -1,3 +1,4 @@
+"""Test the Particles class."""
 import numpy as np
 import pytest
 
@@ -69,7 +70,7 @@ def test_pairs():
     npart = 21
     for i in range(npart):
         particles.add_particle(pos=np.ones(3) * i, ptype=i)
-    pairs = set([(pair[0], pair[1]) for pair in particles.pairs()])
+    pairs = {(pair[0], pair[1]) for pair in particles.pairs()}
     n_pairs = (npart * (npart - 1)) / 2
     assert len(pairs) == n_pairs
 

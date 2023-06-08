@@ -38,7 +38,7 @@ class Potential(ABC):
             "Set parameters used, but it is not implemented by the"
             " potential - ignoring the given parameters: %s"
         )
-        LOGGER.info(msg % parameters)
+        LOGGER.info(msg, parameters)
 
     @abstractmethod
     def potential(self, system: System) -> float:

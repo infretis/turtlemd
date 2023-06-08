@@ -1,5 +1,6 @@
-import pytest
+"""Tests for the System class."""
 import numpy as np
+import pytest
 
 from turtlemd.box import Box
 from turtlemd.particles import Particles
@@ -8,6 +9,7 @@ from turtlemd.system import System
 
 
 def test_system_setup():
+    """Test that we can initiate a system."""
     box = Box()
     particles = Particles()
     potentials = [DoubleWell()]
@@ -46,6 +48,7 @@ def test_force():
 
 
 def test_potential_and_force():
+    """Test that we can evaluate the potential, force, and virial."""
     box = Box()
     particles = Particles()
     particles.add_particle(

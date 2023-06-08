@@ -131,7 +131,7 @@ class RectangularWell(Potential):
 
     def force(self, system: System) -> tuple[np.ndarray, np.ndarray]:
         """Not implemented, just return zeros."""
-        LOGGER.warning("Calling force for %s is not implemented!" % self.desc)
+        LOGGER.warning("Calling force for %s is not implemented!", self.desc)
         force = np.zeros_like(system.particles.force)
         virial = np.zeros_like(system.particles.virial)
         return force, virial
@@ -206,7 +206,7 @@ class DoubleWellWCA(Potential):
                 self.params[key] = parameters[key]
             else:
                 msg = 'Ignored unknown parameter "%s"'
-                LOGGER.warning(msg % key)
+                LOGGER.warning(msg, key)
         self.params["width2"] = self.params["width"] ** 2
         self.params["rwidth"] = self.params["rzero"] + self.params["width"]
         self.params["height4"] = 4.0 * self.params["height"]

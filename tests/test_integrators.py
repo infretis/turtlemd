@@ -1,3 +1,4 @@
+"""Test the integration methods."""
 import numpy as np
 import pytest
 
@@ -69,6 +70,7 @@ CORRECT_VEL_V = np.array(
 
 
 def create_test_system():
+    """Create a system to test on."""
     box = Box(periodic=[False])
     potentials = [DoubleWell(a=1.0, b=2.0, c=0.0)]
     system = System(
@@ -87,6 +89,7 @@ def create_test_system():
 
 
 def test_velocity_verlet():
+    """Test integration with Velocity Verlet."""
     system = create_test_system()
     integrator = VelocityVerlet(timestep=0.002)
     for i in range(21):
@@ -99,6 +102,7 @@ def test_velocity_verlet():
 
 
 def test_verlet():
+    """Test integration with Verlet."""
     system = create_test_system()
     integrator = Verlet(timestep=0.002)
     assert integrator.previous_pos is None

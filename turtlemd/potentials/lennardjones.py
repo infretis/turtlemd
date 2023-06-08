@@ -138,7 +138,7 @@ class LennardJonesCut(Potential):
             eps_ij = self.params[pair]["epsilon"]
             sig_ij = self.params[pair]["sigma"]
             rcut = np.sqrt(self._rcut2[pair])
-            stri = "{}-{}".format(*pair)
+            stri = f"{pair[0]}-{pair[1]}"
             strparam.append(atmformat2.format(stri, eps_ij, sig_ij, rcut))
         return "\n".join(strparam)
 
@@ -329,7 +329,7 @@ def generate_pair_interactions(
             pair_param[atmi, atmj] = dict(parameters[atmi, atmj])
             pair_param[atmj, atmi] = pair_param[atmi, atmj]
             continue
-        elif (atmj, atmi) in parameters:
+        if (atmj, atmi) in parameters:
             pair_param[atmj, atmi] = dict(parameters[atmj, atmi])
             pair_param[atmi, atmj] = pair_param[atmj, atmi]
             continue
@@ -456,5 +456,6 @@ def mix_parameters(
         sigma_ij = avgs6 ** (1.0 / 6.0)
         rcut_ij = (0.5 * (rcut_i**6 + rcut_j**6)) ** (1.0 / 6.0)
     else:
-        raise ValueError('Uknown mixing rule "%s" requested!' % mixing)
+        msg = f'Uknown mixing rule "{mixing}" requested!'
+        raise ValueError(msg)
     return epsilon_ij, sigma_ij, rcut_ij
