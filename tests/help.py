@@ -1,5 +1,6 @@
 """Common methods for the tests."""
 import numpy as np
+from numpy.random import Generator
 
 
 class FakeRandomGenerator:
@@ -30,7 +31,6 @@ class FakeRandomGenerator:
             0.94301709,
         ]
         self.length = len(self.rgen)
-        self.randint = seed
         self.norm_shift = norm_shift
 
     def rand(self, shape: int = 1) -> np.ndarray:
@@ -43,12 +43,7 @@ class FakeRandomGenerator:
             self.seed += 1
         return np.array(numbers)
 
-    def random_integers(self, low: int = 0, high: int = 1):
-        """Return fake random integers in [low, high]."""
-        idx = self.rand() * (high - low + 1)
-        return int(idx) + low
-
-    def normal(self, loc=0.0, scale=1.0, size=None):
+    def normal(self, loc=0.0, scale=1.0, size=None) -> np.ndarray:
         """Mimic the normal method of random generators."""
         if self.norm_shift:
             shift = loc - 0.5
@@ -61,14 +56,12 @@ class FakeRandomGenerator:
             i[...] = self.rand(shape=1)[0] + shift
         return numbers
 
-    def multivariate_normal(self, mean, cov, cho=None, size=1):
-        """Mimic the multivariate_normal method of random generators."""
-        norm = self.normal(loc=0.0, scale=1.0, size=2 * size)
-        norm = norm.reshape(size, 2)
-        meanm = np.array(
-            [
-                mean,
-            ]
-            * size
-        )
-        return 0.01 * (meanm + norm)
+
+def fake_multivariate_normal(
+    rgen: Generator, mean: np.ndarray, cho: np.ndarray, dim: int
+) -> np.ndarray:
+    """Draw multivariate numbers for testing."""
+    norm = rgen.normal(loc=0.0, scale=1.0, size=2 * dim)
+    norm = norm.reshape(dim, 2)
+    meanm = np.array([mean,] * dim)  # fmt: skip
+    return 0.01 * (meanm + norm)

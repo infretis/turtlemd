@@ -1,10 +1,10 @@
 """Definition of time integrators."""
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
-from numpy.random import RandomState
+from numpy.random import Generator, default_rng
 
 from turtlemd.system import System
 
@@ -115,11 +115,11 @@ class LangevinOverdamped(MDIntegrator):
     gamma: float  # The gamma parameter
     sigma: np.ndarray | None  # Standard deviation for random numbers
     bddt: np.ndarray | None  # The factor dt/(m*gamma)
-    rgen: RandomState  # The random number generator to use here
+    rgen: Generator  # The random number generator to use here
     beta: float  # The kB*T factor.
 
     def __init__(
-        self, timestep: float, gamma: float, rgen: RandomState, beta: float
+        self, timestep: float, gamma: float, rgen: Generator, beta: float
     ):
         super().__init__(
             timestep=timestep,
@@ -160,145 +160,152 @@ class LangevinOverdamped(MDIntegrator):
         system.potential()
 
 
-# @dataclass
-# class LangevinParameterHigh:
-#    scale: np.ndarray = np.zeros(1)
-#    bddt: np.ndarray = np.zeros(1)
-#
-#
-# @dataclass
-# class LangevinParameterLow:
-#    c0: float = 0.0
-#    a1: float = 0.0
-#    a2: np.ndarray = np.zeros(1)
-#    b1: np.ndarray = np.zeros(1)
-#    b2: np.ndarray = np.zeros(1)
-#    mean: list[np.ndarray] = []
-#    cov: list[np.ndarray] = []
-#    cho: list[np.ndarray] = []
-#
-#
-# class Langevin(MDIntegrator):
-#    """The Langevin integrator."""
-#
-#    gamma: float  # The γ-parameter for the Langevin integrator
-#    high_friction: bool  # If we should use the high friction variant
-#    high: LangevinParameterHigh  # Parameters for high friciton limit
-#    low: LangevinParameterLow  # Parameters for the low frinction variant
-#    init_params: bool  # Should we initiate parameters?
-#    rgen: RandomState  # Random generator to use here.
-#    temperature: float  # The temperature of the system
-#
-#    def __init__(
-#        self,
-#        timestep: float,
-#        gamma: float,
-#        rgen,
-#        temperature: float,
-#        high_friction: bool = False,
-#    ):
-#        super().__init__(
-#            timestep=timestep,
-#            description="Langevin integrator",
-#            dynamics="stochastic",
-#        )
-#        self.gamma = gamma
-#        self.high_friction = high_friction
-#        self.temperature = temperature
-#        self.high = LangevinParameterHigh()
-#        self.low = LangevinParameterLow()
-#        self.init_params = True
-#        self.rgen = rgen
-#
-#    def initiate_parameters(self, system: System):
-#        """Initite the parameters for the integrator."""
-#        beta = system.temperature["beta"]
-#        imass = system.particles.imass
-#        if self.high_friction:
-#            self.high.scale = np.sqrt(
-#                2.0 * self.timestep * imass / (beta * self.gamma)
-#            )
-#            self.high.bddt = self.timestep * imass / self.gamma
-#        else:
-#            gamma_dt = self.gamma * self.timestep
-#            exp_gdt = np.exp(-gamma_dt)
-#
-#            c_0 = exp_gdt
-#            c_1 = (1.0 - c_0) / gamma_dt
-#            c_2 = (1.0 - c_1) / gamma_dt
-#
-#            self.low.c0 = c_0
-#            self.low.a1 = c_1 * self.timestep
-#            self.low.a2 = c_2 * self.timestep**2 * imass
-#            self.low.b1 = (c_1 - c_2) * self.timestep * imass
-#            self.low.b2 = c_2 * self.timestep * imass
-#
-#            self.low.mean = []
-#            self.low.cho = []
-#            self.low.cov = []
-#
-#            for imassi in imass:
-#                sig_ri2 = (
-#                    self.timestep * imassi[0] / (beta * self.gamma)
-#                ) * (2.0 - (3.0 - 4.0 * exp_gdt + exp_gdt**2) / gamma_dt)
-#                sig_vi2 = (1.0 - exp_gdt**2) * imassi[0] / beta
-#                cov_rvi = (imassi[0] / (beta * self.gamma)) * (
-#                    1.0 - exp_gdt
-#                ) ** 2
-#                cov_matrix = np.array(
-#                    [[sig_ri2, cov_rvi], [cov_rvi, sig_vi2]]
-#                )
-#                self.low.mean.append(np.zeros(2))
-#                self.low.cho.append(np.linalg.cholesky(cov_matrix))
-#                self.low.cov.append(cov_matrix)
-#
-#    def overdamped_step(self, system: System):
-#        """One time step of overdamped Langevin integration."""
-#        system.force()
-#        particles = system.particles
-#        rands = self.rgen.normal(
-#            loc=0.0,
-#            scale=self.high.scale,
-#            size=particles.vel.shape,
-#        )
-#        particles.pos += self.high.bddt * particles.force + rands
-#        particles.vel = rands
-#        system.potential()
-#
-#    def inertia_step(self, system: System):
-#        """One time step of normal Langevin integration."""
-#        particles = system.particles
-#        ndim = system.get_dim()
-#        pos_rand = np.zeros(particles.pos.shape)
-#        vel_rand = np.zeros(particles.vel.shape)
-#        if self.gamma > 0.0:
-#            for i, (meani, covi, choi) in enumerate(
-#                zip(self.low.mean, self.low.cov, self.low.cho)
-#            ):
-#                randxv = self.rgen.multivariate_normal(
-#                    meani, covi, cho=choi, size=ndim
-#                )
-#                pos_rand[i] = randxv[:, 0]
-#                vel_rand[i] = randxv[:, 1]
-#        particles.pos += (
-#            self.low.a1 * particles.vel
-#            + self.low.a2 * particles.force
-#            + pos_rand
-#        )
-#
-#        vel2 = (
-#            self.low.c0 * particles.vel
-#            + self.low.b1 * particles.force
-#            + vel_rand
-#        )
-#
-#        system.force()  # Update forces.
-#
-#        particles.vel = vel2 + self.low.b2 * particles.force
-#
-#        system.potential()
-#
-#    def integration_step(self, system: System):
-#        if self.init_params:
-#            self.initiate_parameters(system)
-#            self.init_params = False
+@dataclass
+class LangevinParameter:
+    """Store parameters for the Langevin integrator."""
+
+    c0: float = 0.0
+    a1: float = 0.0
+    a2: np.ndarray = np.zeros(1)
+    b1: np.ndarray = np.zeros(1)
+    b2: np.ndarray = np.zeros(1)
+    mean: list[np.ndarray] = field(default_factory=list)
+    cov: list[np.ndarray] = field(default_factory=list)
+    cho: list[np.ndarray] = field(default_factory=list)
+
+
+class LangevinIntertia(MDIntegrator):
+    """The `Langevin`_ integrator.
+
+    The equations of motion are integrated according to,
+
+    ``r(t + dt) = r(t) + c1 * dt * v(t) + c2*dt*dt*a(t) + dr``
+
+    ``v(r + dt) = c0 * v(t) + (c1-c2)*dt*a(t) + c2*dt*a(t+dt) + dv``.
+
+    where c0, c1, and c2 are parameters derived from gamma.
+
+    .. _Langevin:
+        https://en.wikipedia.org/wiki/Langevin_dynamics
+    """
+
+    gamma: float  # The gamma parameter
+    rgen: Generator  # The random number generator to use here
+    beta: float  # The kB*T factor.
+    param: LangevinParameter  # Constants/parameters for the dynamics.
+    initiate: bool  # Determines if we need to initiate the parameters.
+
+    def __init__(
+        self,
+        timestep: float,
+        gamma: float,
+        beta: float,
+        rgen: Generator | None = None,
+        seed: int = 0,
+    ):
+        super().__init__(
+            timestep=timestep,
+            description="Langevin overdamped integrator",
+            dynamics="stochastic",
+        )
+        self.gamma = gamma
+        if rgen is None:
+            self.rgen = default_rng(seed=seed)
+        else:
+            self.rgen = rgen
+        self.beta = beta
+        self.initiate = True
+        self.param = LangevinParameter()
+
+    def initiate_parameters(self, system: System):
+        """Initiate the parameters for the integrator.
+
+        The initiation needs the masses of the particles, so we need
+        the system to initiate all parameters.
+        """
+        gamma_dt = self.gamma * self.timestep
+        exp_gdt = np.exp(-gamma_dt)
+
+        c_0 = exp_gdt
+        c_1 = (1.0 - c_0) / gamma_dt
+        c_2 = (1.0 - c_1) / gamma_dt
+
+        imasses = system.particles.imass
+        self.param.c0 = c_0
+        self.param.a1 = c_1 * self.timestep
+        self.param.a2 = c_2 * self.timestep**2 * imasses
+        self.param.b1 = (c_1 - c_2) * self.timestep * imasses
+        self.param.b2 = c_2 * self.timestep * imasses
+
+        self.param.mean = []
+        self.param.cho = []
+        self.param.cov = []
+
+        for imassi in imasses:
+            sig_ri2 = (
+                self.timestep * imassi[0] / (self.beta * self.gamma)
+            ) * (2.0 - (3.0 - 4.0 * exp_gdt + exp_gdt**2) / gamma_dt)
+            sig_vi2 = (1.0 - exp_gdt**2) * imassi[0] / self.beta
+            cov_rvi = (imassi[0] / (self.beta * self.gamma)) * (
+                1.0 - exp_gdt
+            ) ** 2
+
+            cov_matrix = np.array([[sig_ri2, cov_rvi], [cov_rvi, sig_vi2]])
+
+            self.param.mean.append(np.zeros(2))
+            self.param.cho.append(np.linalg.cholesky(cov_matrix))
+            self.param.cov.append(cov_matrix)
+
+    def integration_step(self, system: System):
+        """Do one Langevin integration step."""
+        if self.initiate:
+            self.initiate_parameters(system)
+            self.initiate = False
+        particles = system.particles
+        pos_rand, vel_rand = self.draw_random_numbers(system)
+        particles.pos += (
+            self.param.a1 * particles.vel
+            + self.param.a2 * particles.force
+            + pos_rand
+        )
+        vel2 = (
+            self.param.c0 * particles.vel
+            + self.param.b1 * particles.force
+            + vel_rand
+        )
+        system.force()
+        particles.vel = vel2 + self.param.b2 * particles.force
+        system.potential()
+
+    def draw_random_numbers(
+        self, system: System
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """This method draws random numbers for the integration step."""
+        particles = system.particles
+        dim = particles.dim
+        pos_rand = np.zeros(particles.pos.shape)
+        vel_rand = np.zeros(particles.vel.shape)
+        mean, cho = self.param.mean, self.param.cho
+        for i, (meani, choi) in enumerate(zip(mean, cho)):
+            randxv = multivariate_normal(self.rgen, meani, choi, dim)
+            pos_rand[i] = randxv[:, 0]
+            vel_rand[i] = randxv[:, 1]
+        return pos_rand, vel_rand
+
+
+def multivariate_normal(
+    rgen: Generator, mean: np.ndarray, cho: np.ndarray, dim: int
+) -> np.ndarray:
+    """Draw numbers from a multivariate normal distribution.
+
+    Here, we want to avoid redoing the Cholesky factorization we
+    did during the initialization of the parameters. So this method
+    should be equal to the `multivariate_normal` method of the
+    random generators in numpy (with `method='cholesky'`) with the
+    exception here that we assume we already have done the Cholesky
+    factorization and know the input matrix `cho`.
+    """
+    norm = rgen.normal(loc=0.0, scale=1.0, size=2 * dim)
+    norm = norm.reshape(dim, 2)
+    meanm = np.array([mean, ] * dim)  # fmt: skip
+    return meanm + norm @ cho.T
