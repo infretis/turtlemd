@@ -160,4 +160,8 @@ class Box:
 
     def __str__(self) -> str:
         """Return a string describing the box."""
-        return f"Hello, this is box. My matrix is: {self.box_matrix}"
+        msg = [
+            f"Hello, this is box and my matrix is:\n{self.box_matrix}",
+            f"Periodic? {self.periodic}",
+        ]
+        return "\n".join(msg)
