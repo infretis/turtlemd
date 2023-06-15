@@ -159,9 +159,10 @@ def test_pressure_tensors():
     assert pytest.approx(scalar) == 13.75
 
 
-def test_index():
+def test_index_len():
     """Test that we can index/slice particles."""
     particles = create_some_particles([1, 2, 3, 4])
+    assert len(particles) == particles.npart
     assert pytest.approx(particles.pos) == np.zeros_like(particles.pos)
     info = particles[:2]
     assert info.pos.shape == (2, 3)

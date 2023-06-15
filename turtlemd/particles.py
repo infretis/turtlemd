@@ -95,6 +95,10 @@ class Particles:
             }
             yield part
 
+    def __len__(self) -> int:
+        """Just give the number of particles."""
+        return self.npart
+
     def __getitem__(self, key: int | slice | Iterable[int]):
         """Support slicing for particles."""
         part = Particles(dim=self.dim)
