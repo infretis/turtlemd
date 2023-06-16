@@ -4,10 +4,10 @@ import logging
 import numpy as np
 import pytest
 
-from turtlemd.box import Box
-from turtlemd.particles import Particles
 from turtlemd.potentials.well import DoubleWellWCA
-from turtlemd.system import System
+from turtlemd.system.box import Box
+from turtlemd.system.particles import Particles
+from turtlemd.system.system import System
 
 CORRECT_FORCE = np.array([-2416.67712532, -2416.67712532, -2416.67712532])
 CORRECT_VIRIAL = np.ones((3, 3)) * 483.33542506

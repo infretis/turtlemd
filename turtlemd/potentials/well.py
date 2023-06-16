@@ -17,7 +17,7 @@ import logging
 import numpy as np
 
 from turtlemd.potentials.potential import Potential
-from turtlemd.system import System
+from turtlemd.system.system import System
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())

@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from numpy.random import default_rng
 
-from turtlemd.particles import (
+from turtlemd.system.particles import (
     Particles,
     generate_maxwell_velocities,
     kinetic_energy,

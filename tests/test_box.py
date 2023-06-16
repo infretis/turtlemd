@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import pytest
 
-from turtlemd.box import Box, guess_dimensionality
+from turtlemd.system.box import Box, guess_dimensionality
 
 
 def test_guess_dimensionality():

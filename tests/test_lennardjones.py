@@ -4,14 +4,14 @@ import math
 import numpy as np
 import pytest
 
-from turtlemd.box import Box
-from turtlemd.particles import Particles
 from turtlemd.potentials.lennardjones import (
     LennardJonesCut,
     generate_pair_interactions,
     mix_parameters,
 )
-from turtlemd.system import System
+from turtlemd.system.box import Box
+from turtlemd.system.particles import Particles
+from turtlemd.system.system import System
 
 CORRECT_VPOT = 32480.0489507
 CORRECT_FORCE = np.array(

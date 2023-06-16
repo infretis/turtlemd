@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from turtlemd.tools import UNIT_CELL, generate_lattice
+from turtlemd.tools.tools import UNIT_CELL, generate_lattice
 
 CORRECT_XYZ = {
     "fcc": np.array(

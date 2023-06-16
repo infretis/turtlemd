@@ -5,7 +5,6 @@ from help import FakeRandomGenerator, fake_multivariate_normal
 from numpy.random import default_rng
 
 import turtlemd.integrators
-from turtlemd.box import Box
 from turtlemd.integrators import (
     LangevinIntertia,
     LangevinOverdamped,
@@ -13,9 +12,10 @@ from turtlemd.integrators import (
     VelocityVerlet,
     Verlet,
 )
-from turtlemd.particles import Particles
 from turtlemd.potentials.well import DoubleWell
-from turtlemd.system import System
+from turtlemd.system.box import Box
+from turtlemd.system.particles import Particles
+from turtlemd.system.system import System
 
 TISMOL_POS_LANG = np.array(
     [

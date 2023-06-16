@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from numpy.random import Generator, default_rng
 
-from turtlemd.system import System
+from turtlemd.system.system import System
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())

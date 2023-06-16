@@ -2,10 +2,10 @@
 import numpy as np
 import pytest
 
-from turtlemd.box import Box
-from turtlemd.particles import Particles
 from turtlemd.potentials.well import DoubleWell
-from turtlemd.system import System
+from turtlemd.system.box import Box
+from turtlemd.system.particles import Particles
+from turtlemd.system.system import System
 
 
 def test_system_setup():
