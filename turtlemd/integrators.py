@@ -166,9 +166,9 @@ class LangevinParameter:
 
     c0: float = 0.0
     a1: float = 0.0
-    a2: np.ndarray = np.zeros(1)
-    b1: np.ndarray = np.zeros(1)
-    b2: np.ndarray = np.zeros(1)
+    a2: np.ndarray = field(default_factory=lambda: np.zeros(1))
+    b1: np.ndarray = field(default_factory=lambda: np.zeros(1))
+    b2: np.ndarray = field(default_factory=lambda: np.zeros(1))
     mean: list[np.ndarray] = field(default_factory=list)
     cov: list[np.ndarray] = field(default_factory=list)
     cho: list[np.ndarray] = field(default_factory=list)
