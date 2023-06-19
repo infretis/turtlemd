@@ -6,8 +6,14 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 
 if TYPE_CHECKING:
-    from turtlemd.box import Box  # pragma: no cover
-    from turtlemd.particles import Particles  # pragma: no cover
+    from turtlemd.system.box import Box  # pragma: no cover
+    from turtlemd.system.particles import Particles  # pragma: no cover
+
+from turtlemd.system.particles import (
+    kinetic_energy,
+    kinetic_temperature,
+    pressure_tensor,
+)
 
 
 class System:
@@ -82,3 +88,24 @@ class System:
         if virial is not None:
             self.particles.virial = virial
         return force, virial
+
+    def thermo(self, boltzmann: float = 1.0):
+        """Evaluate simple thermodynamic properties for the system."""
+        ekin, temp, pressure, vpot = None, None, None, None
+        if self.particles is None or self.particles.npart == 0:
+            return ekin, temp, pressure, vpot
+
+        particles = self.particles
+        vpot = particles.v_pot
+        if vpot is not None:
+            vpot /= particles.npart
+        kin_tensor, ekin = kinetic_energy(particles)
+        ekin /= particles.npart
+
+        _, pressure = pressure_tensor(
+            particles, self.box.volume(), kin_tensor=kin_tensor
+        )
+
+        dof = getattr(self.box, "dof", None)
+        temp, _, _ = kinetic_temperature(particles, boltzmann, dof=dof)
+        return ekin, temp, pressure, vpot
