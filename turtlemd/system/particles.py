@@ -3,7 +3,8 @@
 Tha particle list collects the mass, positions, velocities,
 forces, types, etc. for a collection of particles.
 """
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterator
+from typing import SupportsIndex
 
 import numpy as np
 from numpy.random import Generator
@@ -99,7 +100,7 @@ class Particles:
         """Just give the number of particles."""
         return self.npart
 
-    def __getitem__(self, key: int | slice | Iterable[int]):
+    def __getitem__(self, key: SupportsIndex | tuple[SupportsIndex, ...]):
         """Support slicing for particles."""
         part = Particles(dim=self.dim)
         part.pos = self.pos[key]
@@ -172,7 +173,7 @@ def kinetic_temperature(
     boltzmann: float,
     dof: list[float] | None = None,
     kin_tensor: np.ndarray | None = None,
-) -> tuple[np.floating, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Calculate the kinetic temperature of a collection of particles.
 
     Args:
@@ -194,7 +195,7 @@ def kinetic_temperature(
         kin_tensor, _ = kinetic_energy(particles)
     if dof is not None:
         ndof = ndof - dof
-    temperature = (2.0 * kin_tensor.diagonal() / ndof) / boltzmann
+    temperature = (2.0 * np.diagonal(kin_tensor) / ndof) / boltzmann
     return np.mean(temperature), temperature, kin_tensor
 
 

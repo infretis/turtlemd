@@ -113,10 +113,11 @@ class LangevinOverdamped(MDIntegrator):
     """
 
     gamma: float  # The gamma parameter
-    sigma: np.ndarray | None  # Standard deviation for random numbers
-    bddt: np.ndarray | None  # The factor dt/(m*gamma)
+    sigma: np.ndarray | float  # Standard deviation for random numbers
+    bddt: np.ndarray | float  # The factor dt/(m*gamma)
     rgen: Generator  # The random number generator to use here
-    beta: float  # The kB*T factor.
+    beta: float  # The kB*T factor
+    _initiate: bool  # If True, we still need to set some parameters
 
     def __init__(
         self, timestep: float, gamma: float, rgen: Generator, beta: float
@@ -127,10 +128,11 @@ class LangevinOverdamped(MDIntegrator):
             dynamics="stochastic",
         )
         self.gamma = gamma
-        self.sigma = None
+        self.sigma = 0.0
         self.rgen = rgen
-        self.bddt = None
+        self.bddt = 0.0
         self.beta = beta
+        self._initiate = True
 
     def initiate_parameters(self, system: System):
         """Initiate the parameters for the integrator.
@@ -138,16 +140,17 @@ class LangevinOverdamped(MDIntegrator):
         The initiation needs the masses of the particles, so we need
         the system to initiate all parameters.
         """
-        imass = system.particles.imass
-        self.sigma = np.sqrt(
-            2.0 * self.timestep * imass / (self.beta * self.gamma)
-        )
-        self.bddt = self.timestep * imass / self.gamma
+        if self._initiate:
+            imass = system.particles.imass
+            self.sigma = np.sqrt(
+                2.0 * self.timestep * imass / (self.beta * self.gamma)
+            )
+            self.bddt = self.timestep * imass / self.gamma
+            self._initiate = False
 
     def integration_step(self, system: System):
         """Do a single integration step."""
-        if self.sigma is None or self.bddt is None:
-            self.initiate_parameters(system)
+        self.initiate_parameters(system)
         system.force()
         particles = system.particles
         rands = self.rgen.normal(
@@ -193,7 +196,7 @@ class LangevinIntertia(MDIntegrator):
     rgen: Generator  # The random number generator to use here
     beta: float  # The kB*T factor.
     param: LangevinParameter  # Constants/parameters for the dynamics.
-    initiate: bool  # Determines if we need to initiate the parameters.
+    _initiate: bool  # Determines if we need to initiate the parameters.
 
     def __init__(
         self,
@@ -214,7 +217,7 @@ class LangevinIntertia(MDIntegrator):
         else:
             self.rgen = rgen
         self.beta = beta
-        self.initiate = True
+        self._initiate = True
         self.param = LangevinParameter()
 
     def initiate_parameters(self, system: System):
@@ -223,6 +226,8 @@ class LangevinIntertia(MDIntegrator):
         The initiation needs the masses of the particles, so we need
         the system to initiate all parameters.
         """
+        if not self._initiate:
+            return
         gamma_dt = self.gamma * self.timestep
         exp_gdt = np.exp(-gamma_dt)
 
@@ -255,12 +260,11 @@ class LangevinIntertia(MDIntegrator):
             self.param.mean.append(np.zeros(2))
             self.param.cho.append(np.linalg.cholesky(cov_matrix))
             self.param.cov.append(cov_matrix)
+        self._initiate = False
 
     def integration_step(self, system: System):
         """Do one Langevin integration step."""
-        if self.initiate:
-            self.initiate_parameters(system)
-            self.initiate = False
+        self.initiate_parameters(system)
         particles = system.particles
         pos_rand, vel_rand = self.draw_random_numbers(system)
         particles.pos += (

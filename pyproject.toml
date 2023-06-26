@@ -22,6 +22,7 @@ jupyter-black = "^0.3.4"
 [tool.ruff]
 line-length = 78
 select = ["F", "E", "W", "I001", "UP"]
+ignore-init-module-imports = true
 
 [tool.black]
 line-length = 78
@@ -30,6 +31,7 @@ target-version = ["py310", "py311"]
 [tool.mypy]
 warn_unused_ignores = true
 show_error_codes = true
+plugins = "numpy.typing.mypy_plugin"
 
 [build-system]
 requires = ["poetry-core"]

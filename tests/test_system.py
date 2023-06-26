@@ -60,3 +60,42 @@ def test_potential_and_force():
     assert pytest.approx(v_pot) == -18.0
     assert pytest.approx(force) == np.full_like(force, 8)
     assert pytest.approx(virial) == np.zeros_like(virial)
+
+
+def test_thermo():
+    """Test that we can compute some simple thermodynamic properties."""
+    box = Box()
+    particles = Particles()
+    potentials = [DoubleWell(a=1, b=3, c=0.0), DoubleWell(a=1, b=5, c=0.0)]
+    system = System(
+        box=box,
+        particles=particles,
+        potentials=potentials,
+    )
+    # For empty system:
+    therm = system.thermo()
+    assert all(i is None for _, i in therm.items())
+    # Add one particle:
+    particles.add_particle(
+        pos=[1.0],
+    )
+    v_pot, _, _ = system.potential_and_force()
+    # Box is periodic, so there should be no DOFs:
+    therm = system.thermo()
+    assert pytest.approx(v_pot) == therm["vpot"]
+    assert np.isnan(therm["temp"])
+    # Try with new box:
+    box = Box(periodic=[False])
+    system.box = box
+    v_pot, _, _ = system.potential_and_force()
+    therm = system.thermo()
+    assert pytest.approx(v_pot) == therm["vpot"]
+    assert pytest.approx(therm["ekin"]) == 0
+    assert pytest.approx(therm["pressure"]) == 0
+    assert pytest.approx(therm["temp"]) == 0
+    particles.vel += np.ones_like(particles.pos)
+    therm = system.thermo()
+    assert pytest.approx(v_pot) == therm["vpot"]
+    assert pytest.approx(therm["ekin"]) == 1.5
+    assert pytest.approx(therm["temp"]) == 1.0
+    assert pytest.approx(therm["pressure"]) == 0
