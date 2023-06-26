@@ -83,7 +83,7 @@ def test_thermo():
     # Box is periodic, so there should be no DOFs:
     therm = system.thermo()
     assert pytest.approx(v_pot) == therm["vpot"]
-    assert np.isnan(therm["temp"])
+    assert np.isnan(therm["temperature"])
     # Try with new box:
     box = Box(periodic=[False])
     system.box = box
@@ -92,10 +92,10 @@ def test_thermo():
     assert pytest.approx(v_pot) == therm["vpot"]
     assert pytest.approx(therm["ekin"]) == 0
     assert pytest.approx(therm["pressure"]) == 0
-    assert pytest.approx(therm["temp"]) == 0
+    assert pytest.approx(therm["temperature"]) == 0
     particles.vel += np.ones_like(particles.pos)
     therm = system.thermo()
     assert pytest.approx(v_pot) == therm["vpot"]
     assert pytest.approx(therm["ekin"]) == 1.5
-    assert pytest.approx(therm["temp"]) == 1.0
+    assert pytest.approx(therm["temperature"]) == 1.0
     assert pytest.approx(therm["pressure"]) == 0
