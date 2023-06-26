@@ -21,7 +21,7 @@ class Thermo(TypedDict):
 
     ekin: None | float
     pressure: None | float
-    temp: None | float
+    temperature: None | float
     vpot: None | float
 
 
@@ -103,7 +103,7 @@ class System:
         thermo: Thermo = {
             "ekin": None,
             "pressure": None,
-            "temp": None,
+            "temperature": None,
             "vpot": None,
         }
         if self.particles is None or self.particles.npart == 0:
@@ -126,5 +126,5 @@ class System:
 
         dof = getattr(self.box, "dof", None)
         temp, _, _ = kinetic_temperature(particles, boltzmann, dof=dof)
-        thermo["temp"] = float(temp)
+        thermo["temperature"] = float(temp)
         return thermo

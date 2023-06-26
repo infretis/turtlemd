@@ -124,8 +124,10 @@ def test_md_simulation():
     system = create_test_system()
     integrator = VelocityVerlet(timestep=0.002)
     simulation = MDSimulation(system, integrator, 10)
+    traj = np.load(HERE / "md-traj.npy")
     # Accumulate energies:
     for i, systemi in enumerate(simulation.run()):
+        print(i)
         therm = systemi.thermo(boltzmann=1)
         assert (
             pytest.approx(therm["temperature"])
@@ -137,6 +139,8 @@ def test_md_simulation():
         )
         assert pytest.approx(therm["ekin"]) == CORRECT_ENERGIES["ekin"][i]
         assert pytest.approx(therm["vpot"]) == CORRECT_ENERGIES["vpot"][i]
+        assert pytest.approx(systemi.particles.pos) == traj[i][:, :3]
+        assert pytest.approx(systemi.particles.vel) == traj[i][:, 3:]
 
 
 def test_stop_conditions_create():
