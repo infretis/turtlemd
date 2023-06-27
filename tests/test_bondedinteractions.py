@@ -12,8 +12,7 @@ config.update("jax_enable_x64", True)
 
 
 def rotation(xyz, a, theta):
-    # rotate the paticle coordinates <xyz>
-    # along the vector <a> <theta> radians
+    """Rotate particles coordinates xyz theta radians along vector a.""" 
     a = a / np.linalg.norm(a)
     C = np.array([[0, -a[2], a[1]], [a[2], 0, -a[0]], [-a[1], a[0], 0]])
     R = np.identity(3) + C * np.sin(theta) + C @ C * (1 - np.cos(theta))
@@ -50,23 +49,24 @@ def create_test_system():
         particles.add_particle(xyz, mass=1.008, name="H")
 
     # force field
+    # units in kJ/mol, nm, and ps (same as gromacs)
     potentials = [
         BondedInteractions(
-            bonds=[
+            bonds=(
                 # k         b0   i  j
                 [200000.0, 0.1, 0, 1],
                 [200000.0, 0.1, 1, 2],
                 [200000.0, 0.1, 2, 3],
-            ],
-            angles=[
+            ),
+            angles=(
                 # k      ang0           i  j  k
                 [400.0, np.deg2rad(90), 0, 1, 2],
                 [400.0, np.deg2rad(90), 1, 2, 3],
-            ],
-            dihedrals=[
+            ),
+            dihedrals=(
                 # k    ang0           n    i  j  k  l
                 [8.0, np.deg2rad(180), 2.0, 0, 1, 2, 3]
-            ],
+            ),
         )
     ]
 
