@@ -45,5 +45,5 @@ class MaxSteps(StopCondition):
     """Stop if we surpass the maximum number of steps."""
 
     def stop(self, simulation: MDSimulation) -> bool:
-        """Check if we are to do a soft exit."""
+        """Check if we are done."""
         return simulation.cycle["stepno"] >= simulation.cycle["steps"]
