@@ -42,7 +42,7 @@ def Vdihedral(x1, x2, x3, x4, k, phi0, n):
     t = jnp.cross(rij, rkj)
     u = jnp.cross(rlk, rkj)
     phi = acosbound(jnp.dot(t, u) / (jnp.linalg.norm(t) * jnp.linalg.norm(u)))
-    V = 0.5 * k * (1.0 + jnp.cos(n * phi - phi0))
+    V = k * (1.0 + jnp.cos(n * phi - phi0))
     return V
 
 
