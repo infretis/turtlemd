@@ -54,9 +54,9 @@ Fdihedral = grad(Vdihedral, argnums=(0, 1, 2, 3))
 class BondedInteractions(Potential):
     def __init__(
         self,
-        bonds: list[list[float, float, int, int]],
-        angles: list[list[float, float, int, int, int]],
-        dihedrals: list[list[float, float, float, int, int, int, int]],
+        bonds: list[tuple[float, float, int, int]],
+        angles: list[tuple[float, float, int, int, int]],
+        dihedrals: list[tuple[float, float, float, int, int, int, int]],
         desc="""Bond, angle and dihedral potential between particles
             with forces from automatic differentiation.""",
     ):
