@@ -353,8 +353,6 @@ LANGEVIN_PARAMETER2 = LangevinParameter(
 )
 
 
-
-
 class FakeRandomGenerator:
     """A fake random generator for testing."""
 

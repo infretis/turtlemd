@@ -1,6 +1,7 @@
 """Methods to read particles from xyz-files."""
 import logging
 from dataclasses import dataclass, field
+
 import numpy as np
 
 LOGGER = logging.getLogger(__name__)
