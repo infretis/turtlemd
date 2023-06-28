@@ -1,4 +1,5 @@
 """Methods to read particles from xyz-files."""
+from collections.abc import Iterator
 import logging
 import pathlib
 from dataclasses import dataclass, field
@@ -22,7 +23,7 @@ class Snapshot:
     xyz: np.ndarray = np.zeros(3)
 
 
-def read_xyz_file(filename: str | pathlib.Path):
+def read_xyz_file(filename: str | pathlib.Path) -> Iterator[Snapshot]:
     """Read configurations from a xyz-file"""
 
     lines_to_read = 0
@@ -63,7 +64,7 @@ def particles_from_xyz_file(
     filename: str | pathlib.Path,
     dim: int = 3,
     masses: dict[str, float] | None = None,
-):
+) -> Particles:
     """Create particles from a given xyz-file.
 
     Args:
