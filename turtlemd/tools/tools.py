@@ -45,6 +45,16 @@ def generate_lattice(
     The lattice is one of the items in `UNIT_CELL`. The lattice is
     repeated `repeat` number of times. The lattice spacing can be
     set with the lattice constant or with the density.
+
+    Args:
+        lattice (str): The type of lattice to create. See `UNIT_CELL`.
+        repeat (list[int]): Number of times to repeat the lattice.
+        lattice_constant (float): Lattice constant to use.
+        density (float): The number density of the lattice.
+
+    Returns:
+        out[0] (np.ndarray): The generated positions.
+        out[1] (np.ndarray): The size (as in the box-vectors) the lattice.
     """
     unit_cell = UNIT_CELL.get(lattice.lower(), None)
     if unit_cell is None:
