@@ -5,7 +5,7 @@ import pathlib
 import numpy as np
 import pytest
 
-from turtlemd.tools.xyz import read_xyz_file
+from turtlemd.tools.xyz import particles_from_xyz_file, read_xyz_file
 
 HERE = pathlib.Path(__file__).resolve().parent
 
@@ -51,3 +51,39 @@ def test_malformed_xyz(caplog):
         with caplog.at_level(logging.ERROR):
             next(read_xyz_file(xyz_file))
             assert "Could not read the number of atoms" in caplog.text
+
+
+def test_particles_from_xyz():
+    """Test that we can create particles from a given xyz-file."""
+    xyz_file = HERE / "config.xyz"
+    # Set up some masses:
+    masses = {
+        "O": 16.0,
+        "Hf": 178.49,
+        "Ba": 137.33,
+    }
+    particles = particles_from_xyz_file(xyz_file, dim=3, masses=masses)
+    assert list(particles.name) == ["Ba", "Hf", "O", "O", "O"]
+    assert pytest.approx(particles.pos) == CORRECT_XYZ
+    mass_table = np.array([137.33, 178.49, 16.0, 16.0, 16.0]).reshape(5, 1)
+    assert pytest.approx(particles.mass) == mass_table
+    assert particles.ptype[0] != particles.ptype[1]
+    assert particles.ptype[0] != particles.ptype[2]
+    assert particles.ptype[2] == particles.ptype[3]
+    assert particles.ptype[2] == particles.ptype[4]
+    # Test what happens if we use a 2D system:
+    particles = particles_from_xyz_file(xyz_file, dim=2)
+    assert particles.pos.shape == (5, 2)
+    assert pytest.approx(particles.vel) == np.zeros((5, 2))
+    xyz_file = HERE / "config2D.xyz"
+    particles = particles_from_xyz_file(xyz_file, dim=2)
+    assert particles.pos.shape == (5, 2)
+    # Test what happens if we have more columns:
+    xyz_file = HERE / "traj.xyz"
+    particles = particles_from_xyz_file(xyz_file, dim=3)
+    assert pytest.approx(particles.pos) == np.full((3, 3), 500)
+    assert pytest.approx(particles.vel) == np.full((3, 3), 500)
+    particles = particles_from_xyz_file(xyz_file, dim=2)
+    assert pytest.approx(particles.pos) == np.full((3, 2), 500)
+    assert pytest.approx(particles.vel) == np.full((3, 2), 500)
+    assert pytest.approx(particles.force) == np.full((3, 2), 500)
