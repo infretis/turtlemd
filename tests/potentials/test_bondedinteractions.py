@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import pathlib
 from jax.config import config
 
 import turtlemd as tmd
@@ -9,6 +10,8 @@ import turtlemd.system
 from turtlemd.potentials.jax_bondedinteractions import BondedInteractions
 
 config.update("jax_enable_x64", True)
+
+HERE = pathlib.Path(__file__).resolve().parent
 
 
 def rotation(xyz, a, theta):
@@ -126,7 +129,7 @@ def test_dynamics():
     system = create_test_system()
     integrator = tmd.integrators.VelocityVerlet(timestep=0.0005)
 
-    true_pos, true_vel, true_force = np.load("gromacs_traj.npy")
+    true_pos, true_vel, true_force = np.load(HERE / "gromacs_traj.npy")
 
     pos, vel, force = true_pos * 0, true_vel * 0, true_force * 0
     # initial conditions
