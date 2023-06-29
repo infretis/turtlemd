@@ -46,9 +46,9 @@ def Vdihedral(x1, x2, x3, x4, k, phi0, n):
     return V
 
 
-Fbond = grad(Vbond, argnums=(0, 1))
-Fangle = grad(Vangle, argnums=(0, 1, 2))
-Fdihedral = grad(Vdihedral, argnums=(0, 1, 2, 3))
+Fbond = jit(grad(Vbond, argnums=(0, 1)))
+Fangle = jit(grad(Vangle, argnums=(0, 1, 2)))
+Fdihedral = jit(grad(Vdihedral, argnums=(0, 1, 2, 3)))
 
 
 class BondedInteractions(Potential):
@@ -125,9 +125,9 @@ class BondedInteractions(Potential):
                 dihedral[1],
                 dihedral[2],
             )
-            force[dihedral[3], :] += -f1
-            force[dihedral[4], :] += -f2
-            force[dihedral[5], :] += -f3
-            force[dihedral[6], :] += -f4
+            force[dihedral[3], :] += -jnp.nan_to_num(f1)
+            force[dihedral[4], :] += -jnp.nan_to_num(f2)
+            force[dihedral[5], :] += -jnp.nan_to_num(f3)
+            force[dihedral[6], :] += -jnp.nan_to_num(f4)
 
         return force, 0.0
