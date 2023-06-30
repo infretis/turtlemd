@@ -287,8 +287,8 @@ class LangevinIntertia(MDIntegrator):
         """This method draws random numbers for the integration step."""
         particles = system.particles
         dim = particles.dim
-        pos_rand = np.zeros(particles.pos.shape)
-        vel_rand = np.zeros(particles.vel.shape)
+        pos_rand = np.zeros_like(particles.pos)
+        vel_rand = np.zeros_like(particles.vel)
         mean, cho = self.param.mean, self.param.cho
         for i, (meani, choi) in enumerate(zip(mean, cho)):
             randxv = multivariate_normal(self.rgen, meani, choi, dim)
