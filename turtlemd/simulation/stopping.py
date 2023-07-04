@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from turtlemd.simulation.mdsimulation import (
         MDSimulation,
-    )  # pragma: no cover
+    )
 
 
 LOGGER = logging.getLogger(__name__)
