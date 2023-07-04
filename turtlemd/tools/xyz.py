@@ -1,7 +1,7 @@
 """Methods to read particles from xyz-files."""
-from collections.abc import Iterator
 import logging
 import pathlib
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -20,7 +20,7 @@ class Snapshot:
     comment: str = ""
     atoms: list[str] = field(default_factory=list)
     _xyz: list[list[float]] = field(default_factory=list)
-    xyz: np.ndarray = field(default_factory=np.zeros(3))
+    xyz: np.ndarray = field(default_factory=lambda: np.zeros(3))
 
 
 def read_xyz_file(filename: str | pathlib.Path) -> Iterator[Snapshot]:
