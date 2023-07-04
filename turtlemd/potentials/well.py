@@ -9,8 +9,8 @@ as simple models:
 * RectangularWell (:py:class:`.RectangularWell`)
   This class defines a one-dimensional rectangular well potential.
 
-* DoubleWellWCA (:py:class:`.DoubleWellWCA`)
-    This class defines a double well WCA potential.
+* DoubleWellPair (:py:class:`.DoubleWellPair`)
+    This class defines a double well pair potential.
 """
 import logging
 
@@ -137,10 +137,10 @@ class RectangularWell(Potential):
         return force, virial
 
 
-class DoubleWellWCA(Potential):
+class DoubleWellPair(Potential):
     r"""A double well potential.
 
-    This class defines a double well WCA potential. The potential energy
+    This class defines a double well pair potential. The potential energy
     (:math:`V_\text{pot}`) for a pair of particles separated by a
     distance :math:`r` is given by,
 
@@ -178,9 +178,9 @@ class DoubleWellWCA(Potential):
         self,
         types: tuple[int, int],
         dim: int = 3,
-        desc: str = "A WCA double well potential",
+        desc: str = "A double well pair potential",
     ):
-        """Initialise the Double Well WCA potential."""
+        """Initialise the potential."""
         super().__init__(dim=dim, desc=desc)
         self.params = {
             "height": 0.0,
