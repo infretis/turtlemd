@@ -237,10 +237,6 @@ class DoubleWellPair(Potential):
         """Calculate the potential energy."""
         particles = system.particles
         box = system.box
-        rwidth = self.params["rwidth"]
-        width2 = self.params["width2"]
-        height = self.params["height"]
-
         v_pot = 0.0
 
         for pair in particles.pairs():
@@ -248,10 +244,20 @@ class DoubleWellPair(Potential):
             if self.activate(itype, jtype):
                 delta = box.pbc_dist(particles.pos[i] - particles.pos[j])
                 delr = np.sqrt(np.dot(delta, delta))
-                v_pot += (
-                    height * (1.0 - (((delr - rwidth) ** 2) / width2)) ** 2
-                )
+                v_pot += self._potential_function(delr)
         return v_pot
+
+    def _potential_function(self, delr: float) -> float:
+        """Calculate the potential.
+
+        This method can be used to visualize the potential energy as a
+        function of the bond length.
+
+        """
+        rwidth = self.params["rwidth"]
+        width2 = self.params["width2"]
+        height = self.params["height"]
+        return height * (1.0 - (((delr - rwidth) ** 2) / width2)) ** 2
 
     def force(self, system: System) -> tuple[np.ndarray, np.ndarray]:
         """Calculate the force on the particles."""
