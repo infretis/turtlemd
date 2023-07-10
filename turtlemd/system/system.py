@@ -1,13 +1,28 @@
 """Definition of the simulation system."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from turtlemd.box import Box  # pragma: no cover
-    from turtlemd.particles import Particles  # pragma: no cover
+    from turtlemd.system.box import Box  # pragma: no cover
+    from turtlemd.system.particles import Particles  # pragma: no cover
+
+from turtlemd.system.particles import (
+    kinetic_energy,
+    kinetic_temperature,
+    pressure_tensor,
+)
+
+
+class Thermo(TypedDict):
+    """For storing calculation of thermodynamic properties for a system."""
+
+    ekin: None | float
+    pressure: None | float
+    temperature: None | float
+    vpot: None | float
 
 
 class System:
@@ -82,3 +97,34 @@ class System:
         if virial is not None:
             self.particles.virial = virial
         return force, virial
+
+    def thermo(self, boltzmann: float = 1.0) -> Thermo:
+        """Evaluate simple thermodynamic properties for the system."""
+        thermo: Thermo = {
+            "ekin": None,
+            "pressure": None,
+            "temperature": None,
+            "vpot": None,
+        }
+        if self.particles is None or self.particles.npart == 0:
+            return thermo
+
+        particles = self.particles
+        vpot = particles.v_pot
+        if vpot is not None:
+            vpot /= particles.npart
+        thermo["vpot"] = vpot
+
+        kin_tensor, ekin = kinetic_energy(particles)
+        ekin /= particles.npart
+        thermo["ekin"] = ekin
+
+        _, pressure = pressure_tensor(
+            particles, self.box.volume(), kin_tensor=kin_tensor
+        )
+        thermo["pressure"] = pressure
+
+        dof = getattr(self.box, "dof", None)
+        temp, _, _ = kinetic_temperature(particles, boltzmann, dof=dof)
+        thermo["temperature"] = float(temp)
+        return thermo

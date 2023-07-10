@@ -37,6 +37,7 @@ class Box:
 
     Attributes:
         dim (int): The dimensionality of the box.
+        dof (np.ndarray): The degrees of freedom removed by periodicity.
         periodic (list[bool]): Specifies which dimensions for
             which we should apply periodic boundaries.
         low (np.ndarray): The lower limits of the simulation box.
@@ -47,6 +48,7 @@ class Box:
     """
 
     dim: int
+    dof: np.ndarray
     periodic: list[bool]
     low: np.ndarray
     high: np.ndarray
@@ -66,6 +68,10 @@ class Box:
             self.periodic = periodic
         else:
             self.periodic = [True] * self.dim
+
+        # Keep track of the degrees of freedom removed by periodic
+        # boundaries:
+        self.dof = np.array([1 if i else 0 for i in self.periodic])
 
         if low is not None:
             self.low = np.asarray(low).astype(float)
@@ -160,4 +166,8 @@ class Box:
 
     def __str__(self) -> str:
         """Return a string describing the box."""
-        return f"Hello, this is box. My matrix is: {self.box_matrix}"
+        msg = [
+            f"Hello, this is box and my matrix is:\n{self.box_matrix}",
+            f"Periodic? {self.periodic}",
+        ]
+        return "\n".join(msg)

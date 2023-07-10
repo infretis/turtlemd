@@ -4,14 +4,14 @@ import logging
 import numpy as np
 import pytest
 
-from turtlemd.box import Box
-from turtlemd.particles import Particles
 from turtlemd.potentials.potential import Potential
 from turtlemd.potentials.well import (
     DoubleWell,
     RectangularWell,
 )
-from turtlemd.system import System
+from turtlemd.system.box import Box
+from turtlemd.system.particles import Particles
+from turtlemd.system.system import System
 
 
 def create_test_system(n: int) -> System:

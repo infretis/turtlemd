@@ -1,13 +1,13 @@
-"""Test the DoubleWellWCA potential."""
+"""Test the DoubleWellPair potential."""
 import logging
 
 import numpy as np
 import pytest
 
-from turtlemd.box import Box
-from turtlemd.particles import Particles
-from turtlemd.potentials.well import DoubleWellWCA
-from turtlemd.system import System
+from turtlemd.potentials.well import DoubleWellPair
+from turtlemd.system.box import Box
+from turtlemd.system.particles import Particles
+from turtlemd.system.system import System
 
 CORRECT_FORCE = np.array([-2416.67712532, -2416.67712532, -2416.67712532])
 CORRECT_VIRIAL = np.ones((3, 3)) * 483.33542506
@@ -47,7 +47,7 @@ def create_system(pos: list[list[float]] | None = None) -> System:
 
 def test_parameters(caplog):
     """Test that the parameters are calculated correctly."""
-    pot = DoubleWellWCA(types=(0, 0))
+    pot = DoubleWellPair(types=(0, 0))
     pot.set_parameters(PARAMETERS)
     assert pytest.approx(PARAMETERS["width"] ** 2) == pot.params["width2"]
     assert (
@@ -64,7 +64,7 @@ def test_parameters(caplog):
 
 def test_min_max():
     """Test that the min/max of the potential are correct."""
-    pot = DoubleWellWCA(types=(0, 0))
+    pot = DoubleWellPair(types=(0, 0))
     pot.set_parameters(PARAMETERS)
     min1, min2, max1 = pot.min_max()
     assert pytest.approx(min1) == 1.0
@@ -74,10 +74,10 @@ def test_min_max():
 
 def test_activate():
     """Test that the potential activates for correct types."""
-    pot = DoubleWellWCA(types=(0, 0))
+    pot = DoubleWellPair(types=(0, 0))
     assert pot.activate(0, 0)
     assert not pot.activate(0, 1)
-    pot = DoubleWellWCA(types=(0, 1))
+    pot = DoubleWellPair(types=(0, 1))
     assert not pot.activate(0, 0)
     assert not pot.activate(1, 1)
     assert pot.activate(0, 1)
@@ -87,7 +87,7 @@ def test_activate():
 def test_potential():
     """Test that we can calulate the potential energy correctly."""
     system = create_system()
-    pot = DoubleWellWCA(types=(0, 0))
+    pot = DoubleWellPair(types=(0, 0))
     pot.set_parameters(PARAMETERS)
     vpot = pot.potential(system)
     assert pytest.approx(vpot) == 6
@@ -96,7 +96,7 @@ def test_potential():
 def test_force_and_potential():
     """Test that we can calculate the force, virial, and potential."""
     system = create_system(pos=POS2)
-    pot = DoubleWellWCA(types=(0, 0))
+    pot = DoubleWellPair(types=(0, 0))
     pot.set_parameters(PARAMETERS)
     force, virial = pot.force(system)
     assert pytest.approx(force[0]) == CORRECT_FORCE

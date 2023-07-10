@@ -1,8 +1,17 @@
 """Test the Particles class."""
 import numpy as np
 import pytest
+from numpy.random import default_rng
 
-from turtlemd.particles import Particles
+from turtlemd.system.particles import (
+    Particles,
+    generate_maxwell_velocities,
+    kinetic_energy,
+    kinetic_temperature,
+    linear_momentum,
+    pressure_tensor,
+    zero_momentum,
+)
 
 
 def create_some_particles(masses):
@@ -81,7 +90,7 @@ def test_linear_momentum():
     particles.vel = np.array(
         [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [0.5, 0.5, 0.5], [1.0, 1.0, 1.0]]
     )
-    _, _, mom = particles.linear_momentum()
+    _, _, mom = linear_momentum(particles)
     assert pytest.approx(mom) == np.array([4, 4, 4])
 
 
@@ -92,12 +101,12 @@ def test_zero_momentum():
         [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [0.5, 0.5, 0.5], [1.0, 1.0, 1.0]]
     )
     vel = np.copy(particles.vel)
-    particles.zero_momentum()
-    mom = particles.linear_momentum()
+    zero_momentum(particles)
+    mom = linear_momentum(particles)
     assert pytest.approx(mom) == np.zeros(3)
     particles.vel = vel
-    particles.zero_momentum(dim=[False, True, False])
-    mom = particles.linear_momentum()
+    zero_momentum(particles, dim=[False, True, False])
+    mom = linear_momentum(particles)
     assert pytest.approx(mom) == np.array([4.0, 0.0, 4.0])
 
 
@@ -108,7 +117,7 @@ def test_kinetic_energy():
         [[1.0, 1.0, 1.0], [2.1, 2.1, 2.1], [3.1, 3.1, 3.1], [4.1, 4.1, 4.1]]
     )
     correct = np.full((3, 3), 26.525)
-    kin_tensor, kin = particles.kinetic_energy()
+    kin_tensor, kin = kinetic_energy(particles)
     assert pytest.approx(kin) == 79.575
     assert pytest.approx(kin_tensor) == correct
     mom = particles.vel * particles.mass
@@ -116,7 +125,7 @@ def test_kinetic_energy():
     assert pytest.approx(kin_tensor) == kin_tensor2
     particles = create_some_particles([10])
     particles.vel = np.array([1.0, 2.0, 3.0])
-    kin_tensor, kin = particles.kinetic_energy()
+    kin_tensor, kin = kinetic_energy(particles)
     assert pytest.approx(kin) == 70
     correct = np.array(
         [[5.0, 10.0, 15.0], [10.0, 20.0, 30.0], [15.0, 30.0, 45.0]]
@@ -128,11 +137,11 @@ def test_kinetic_temp():
     """Test calculation of kinetic temperature."""
     particles = create_some_particles([1, 2, 1, 0.01])
     particles.vel = np.ones_like(particles.pos)
-    temp1, temp2, _ = particles.kinetic_temperature(1.0)
+    temp1, temp2, _ = kinetic_temperature(particles, 1.0)
     assert pytest.approx(temp1) == 1.0025
     for i in temp2:
         assert pytest.approx(i) == 1.0025
-    temp1, temp2, _ = particles.kinetic_temperature(1.0, dof=[1.0, 0.0, 0.0])
+    temp1, temp2, _ = kinetic_temperature(particles, 1.0, dof=[1.0, 0.0, 0.0])
     assert pytest.approx(temp1) == 1.11388888889
     for i, j in zip(temp2, (1.3366666667, 1.0025, 1.0025)):
         assert pytest.approx(i) == j
@@ -144,7 +153,43 @@ def test_pressure_tensors():
     particles.vel = np.array(
         [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [0.5, 0.5, 0.5], [1.0, 1.0, 1.0]]
     )
-    press, scalar = particles.pressure_tensor(1.0)
+    press, scalar = pressure_tensor(particles, 1.0)
     for i in press.ravel():
         assert pytest.approx(i) == 13.75
     assert pytest.approx(scalar) == 13.75
+
+
+def test_index_len():
+    """Test that we can index/slice particles."""
+    particles = create_some_particles([1, 2, 3, 4])
+    assert len(particles) == particles.npart
+    assert pytest.approx(particles.pos) == np.zeros_like(particles.pos)
+    info = particles[:2]
+    assert info.pos.shape == (2, 3)
+    info = particles[-2:]
+    info.pos[0, 0] = 1234.0
+    assert pytest.approx(particles.pos[2, 0]) == 1234.0
+    info = particles[range(2)]
+    assert pytest.approx(particles.mass[:2]) == info.mass
+
+
+def test_velocity_generation():
+    """Test that we can generate velocities."""
+    particles = Particles(dim=3)
+    for i in range(10):
+        mass = 1 if i % 2 == 0 else 2
+        particles.add_particle(
+            pos=np.zeros(3),
+            mass=mass,
+        )
+    rgen = default_rng(seed=0)
+    generate_maxwell_velocities(
+        particles,
+        rgen,
+        boltzmann=1.0,
+        temperature=2.0,
+        dof=[1, 1, 1],
+        momentum=True,
+    )
+    temp, _, _ = kinetic_temperature(particles, 1.0, dof=[1, 1, 1])
+    assert pytest.approx(temp) == 2.0

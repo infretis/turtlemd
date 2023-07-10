@@ -9,15 +9,15 @@ as simple models:
 * RectangularWell (:py:class:`.RectangularWell`)
   This class defines a one-dimensional rectangular well potential.
 
-* DoubleWellWCA (:py:class:`.DoubleWellWCA`)
-    This class defines a double well WCA potential.
+* DoubleWellPair (:py:class:`.DoubleWellPair`)
+    This class defines a double well pair potential.
 """
 import logging
 
 import numpy as np
 
 from turtlemd.potentials.potential import Potential
-from turtlemd.system import System
+from turtlemd.system.system import System
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
@@ -137,10 +137,10 @@ class RectangularWell(Potential):
         return force, virial
 
 
-class DoubleWellWCA(Potential):
+class DoubleWellPair(Potential):
     r"""A double well potential.
 
-    This class defines a double well WCA potential. The potential energy
+    This class defines a double well pair potential. The potential energy
     (:math:`V_\text{pot}`) for a pair of particles separated by a
     distance :math:`r` is given by,
 
@@ -178,9 +178,9 @@ class DoubleWellWCA(Potential):
         self,
         types: tuple[int, int],
         dim: int = 3,
-        desc: str = "A WCA double well potential",
+        desc: str = "A double well pair potential",
     ):
-        """Initialise the Double Well WCA potential."""
+        """Initialise the potential."""
         super().__init__(dim=dim, desc=desc)
         self.params = {
             "height": 0.0,
@@ -237,10 +237,6 @@ class DoubleWellWCA(Potential):
         """Calculate the potential energy."""
         particles = system.particles
         box = system.box
-        rwidth = self.params["rwidth"]
-        width2 = self.params["width2"]
-        height = self.params["height"]
-
         v_pot = 0.0
 
         for pair in particles.pairs():
@@ -248,10 +244,20 @@ class DoubleWellWCA(Potential):
             if self.activate(itype, jtype):
                 delta = box.pbc_dist(particles.pos[i] - particles.pos[j])
                 delr = np.sqrt(np.dot(delta, delta))
-                v_pot += (
-                    height * (1.0 - (((delr - rwidth) ** 2) / width2)) ** 2
-                )
+                v_pot += self._potential_function(delr)
         return v_pot
+
+    def _potential_function(self, delr: float) -> float:
+        """Calculate the potential.
+
+        This method can be used to visualize the potential energy as a
+        function of the bond length.
+
+        """
+        rwidth = self.params["rwidth"]
+        width2 = self.params["width2"]
+        height = self.params["height"]
+        return height * (1.0 - (((delr - rwidth) ** 2) / width2)) ** 2
 
     def force(self, system: System) -> tuple[np.ndarray, np.ndarray]:
         """Calculate the force on the particles."""

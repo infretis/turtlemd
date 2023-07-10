@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import pytest
 
-from turtlemd.box import Box, guess_dimensionality
+from turtlemd.system.box import Box, guess_dimensionality
 
 
 def test_guess_dimensionality():
@@ -105,8 +105,8 @@ def test_print(capfd):
     box = Box(high=[5])
     print(box)
     captured = capfd.readouterr()
-    assert "Hello, this is box." in captured.out
-    assert f"My matrix is: {box.box_matrix}" in captured.out
+    assert "Hello, this is box" in captured.out
+    assert f"and my matrix is:\n{box.box_matrix}" in captured.out
 
 
 def test_pbc_wrap():

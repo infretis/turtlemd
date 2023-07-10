@@ -7,7 +7,7 @@ import numpy as np
 
 from turtlemd.potentials.potential import Potential
 
-LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
+LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
@@ -168,7 +168,7 @@ class LennardJonesCut(Potential):
                     self._rcut2, rsq, particles.ptype[i + 1 :], itype
                 )
             )[0]
-            if len(k) > 0:  # pylint: disable=len-as-condition
+            if len(k) > 0:
                 r6inv = 1.0 / rsq[k] ** 3
                 pot += np.sum(
                     _pot_term(
@@ -206,7 +206,7 @@ class LennardJonesCut(Potential):
                     self._rcut2, rsq, particles.ptype[i + 1 :], itype
                 )
             )[0]
-            if len(k) > 0:  # pylint: disable=len-as-condition
+            if len(k) > 0:
                 r2inv = 1.0 / rsq[k]
                 r6inv = r2inv**3
                 forcelj = _force_term(
@@ -249,7 +249,7 @@ class LennardJonesCut(Potential):
                     self._rcut2, rsq, particles.ptype[i + 1 :], itype
                 )
             )[0]
-            if len(k) > 0:  # pylint: disable=len-as-condition
+            if len(k) > 0:
                 jtype = particles.ptype[k + i + 1]
                 r2inv = 1.0 / rsq[k]
                 r6inv = r2inv**3
