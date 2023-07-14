@@ -65,3 +65,4 @@ jobs:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
           unique-id-for-comment: ${{ matrix.python-version }}
+          junitxml-title: Coverage summary (${{ matrix.python-version }})
