@@ -28,4 +28,19 @@ jobs:
         shell: bash
 
 
+  lint:
+    name: "Run linting"
+    runs-on: ubuntu-latest
+    steps:
 
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: "Install dependencies"
+        uses: abatilo/actions-poetry@v2
+        run: poetry --help
