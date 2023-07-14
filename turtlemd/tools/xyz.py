@@ -40,7 +40,8 @@ def read_xyz_file(filename: str | pathlib.Path) -> Iterator[Snapshot]:
                     lines_to_read = int(lines.strip())  # Atoms on first line
                 except ValueError:
                     LOGGER.error(
-                        "Could not read the number of atoms (first line) in file %s!",
+                        "Could not read the number of atoms "
+                        "(first line) in file %s!",
                         filename,
                     )
                     raise

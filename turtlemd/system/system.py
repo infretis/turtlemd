@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING, Any, TypedDict
 
 import numpy as np
 
-if TYPE_CHECKING:
-    from turtlemd.system.box import Box  # pragma: no cover
-    from turtlemd.system.particles import Particles  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
+    from turtlemd.system.box import Box
+    from turtlemd.system.particles import Particles
 
 from turtlemd.system.particles import (
     kinetic_energy,
