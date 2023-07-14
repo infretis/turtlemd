@@ -44,5 +44,16 @@ jobs:
       - name: "Set up Poetry"
         uses: abatilo/actions-poetry@v2
 
-      - name: "Use Poetry"
-        run: poetry --help
+      - name: "Define virtual environment for Poetry"
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+
+      - name: "Define a cache for the virtual environment based on the dependencies lock file"
+        uses: actions/cache@v3
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+
+      - name: "Install the project dependencies"
+        run: poetry install
