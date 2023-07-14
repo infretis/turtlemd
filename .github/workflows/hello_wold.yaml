@@ -31,11 +31,15 @@ jobs:
 
     steps:
 
-      - name: "Checkout repository and set up."
+      - name: "Checkout repository"
         uses: actions/checkout@v3
+
+      - name: "Set up Python"
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name "Set up Poetry"
         uses: abatilo/actions-poetry@v2
 
       - name: "Set up virtual environment for Poetry"
@@ -60,3 +64,4 @@ jobs:
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
+          unique-id-for-comment: ${{ matrix.python-version }}
