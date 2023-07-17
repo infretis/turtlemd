@@ -8,7 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
   coverage:
     name: Coverage
     strategy:
@@ -54,14 +53,9 @@ jobs:
           junitxml-path: ./pytest.xml
           junitxml-title: Coverage summary (Python ${{ steps.setuppy.outputs.python-version }})
 
-      - name: "Update Readme with coverage"
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      - name: "Coveralls"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sed -i '/<!-- Pytest Coverage Comment:Begin -->/,/<!-- Pytest Coverage Comment:End -->/c\<!-- Pytest Coverage Comment:Begin -->\n\${{ steps.coverageComment.outputs.coverageHtml }}\n<!-- Pytest Coverage Comment:End -->' ./README.md
-
-      - name: "Commit & Push changes to Readme"
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        uses: actions-js/push@master
-        with:
-          message: Update coverage on Readme
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pip install coveralls
+          coveralls
