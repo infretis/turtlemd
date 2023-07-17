@@ -54,7 +54,7 @@ jobs:
           junitxml-title: Coverage summary (Python ${{ steps.setuppy.outputs.python-version }})
 
       - name: "Coveralls"
-        with:
+        env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pip install coveralls
