@@ -1,4 +1,4 @@
-name: Run linting and type check
+name: Linting and type check
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  coverage:
+  lintandtype:
 
     name: "Run linting and type check"
     strategy:
