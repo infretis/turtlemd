@@ -17,9 +17,10 @@ sns.set_context("talk")
 
 # units are ps, nm, kj/mol, g/mol
 
+
 def create_system():
     mass = 1.008
-    name = 'H'
+    name = "H"
     positions = [
         [0.303, 0.400, 0.372],
         [0.370, 0.424, 0.443],

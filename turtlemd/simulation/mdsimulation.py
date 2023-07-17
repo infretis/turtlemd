@@ -8,8 +8,8 @@ from turtlemd.integrators import MDIntegrator
 from turtlemd.simulation.stopping import MaxSteps, SoftExit
 from turtlemd.system.system import System
 
-if TYPE_CHECKING:
-    from turtlemd.simulation.stopping import StopCondition  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
+    from turtlemd.simulation.stopping import StopCondition
 
 
 LOGGER = logging.getLogger(__name__)
