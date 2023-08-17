@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "turtlemd"
-version = "2023.2.dev2"
+version = "2023.2.dev3"
 description = "A slow molecular dynamics library for testing"
 authors = ["Anders Lervik <andersle@gmail.com>"]
 license = "MIT"
@@ -9,7 +9,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^1.24.2"
-jax = {extras = ["cpu"], version = "^0.4.13"}
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.261"
