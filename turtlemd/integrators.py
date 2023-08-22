@@ -177,7 +177,7 @@ class LangevinParameter:
     cho: list[np.ndarray] = field(default_factory=list)
 
 
-class LangevinIntertia(MDIntegrator):
+class LangevinInertia(MDIntegrator):
     """The `Langevin`_ integrator.
 
     The equations of motion are integrated according to,
