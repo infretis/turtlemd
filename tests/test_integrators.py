@@ -5,7 +5,7 @@ from numpy.random import Generator, default_rng
 
 import turtlemd.integrators
 from turtlemd.integrators import (
-    LangevinIntertia,
+    LangevinInertia,
     LangevinOverdamped,
     LangevinParameter,
     VelocityVerlet,
@@ -504,7 +504,7 @@ def test_langevin_brownian():
 def test_langevin_parameters():
     """Test the Langevin inertia integrator and generation of parameters."""
     system = create_test_system()
-    integrator = LangevinIntertia(
+    integrator = LangevinInertia(
         timestep=0.002,
         gamma=0.3,
         beta=1.0,
@@ -512,7 +512,7 @@ def test_langevin_parameters():
     integrator.initiate_parameters(system)
     compare_parameters(integrator.param, LANGEVIN_PARAMETER1)
 
-    integrator = LangevinIntertia(
+    integrator = LangevinInertia(
         timestep=0.0005,
         gamma=0.5,
         beta=1.0,
@@ -526,7 +526,7 @@ def test_langevin_random():
     system = create_test_system()
     rgen = default_rng(seed=123)
     rgen2 = default_rng(seed=123)
-    integrator = LangevinIntertia(
+    integrator = LangevinInertia(
         timestep=0.002, gamma=0.3, beta=1.0, rgen=rgen
     )
     integrator.initiate_parameters(system)
@@ -542,7 +542,7 @@ def test_langevin_random():
 def test_langevin_integration(monkeypatch):
     """Test the integration of the equations of motion."""
     system = create_test_system()
-    integrator = LangevinIntertia(
+    integrator = LangevinInertia(
         timestep=0.002,
         gamma=0.3,
         rgen=FakeRandomGenerator(seed=1),
