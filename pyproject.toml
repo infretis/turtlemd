@@ -2,7 +2,11 @@
 name = "turtlemd"
 version = "2023.3.1"
 description = "A slow molecular dynamics library for testing"
-authors = ["Anders Lervik <andersle@gmail.com>"]
+authors = [
+    "Daniel Zhang <daniel.t.zhang@ntnu.no>",
+    "Lukas Baldauf <lukas.baldauf@ntnu.no>",
+    "Anders Lervik <andersle@gmail.com>",
+]
 license = "MIT"
 readme = "README.md"
 
