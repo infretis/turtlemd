@@ -13,6 +13,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^1.24.2"
+toml = "^0.10.2"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.261"
@@ -38,6 +39,9 @@ target-version = ["py310", "py311"]
 warn_unused_ignores = true
 show_error_codes = true
 plugins = "numpy.typing.mypy_plugin"
+
+[tool.poetry.scripts]
+turtlemd = "turtlemd.bin:main"
 
 [build-system]
 requires = ["poetry-core"]

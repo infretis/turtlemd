@@ -1,0 +1,12 @@
+[md]
+total_steps = 1000
+temperature = 1.0
+
+[box]
+periodic = [true, true, true]
+low = [0.0, 0.0, 0.0]
+high = [1.0, 1.0, 1.0]
+
+[integrator]
+type = "VelocityVerlet"
+timestep = 0.005
