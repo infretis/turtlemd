@@ -1,4 +1,6 @@
 """Definition of time integrators."""
+from __future__ import annotations
+
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -10,6 +12,38 @@ from turtlemd.system.system import System
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
+
+
+class IntegratorRegistry(type):
+    """Define a class for a integration registry."""
+
+    _registry: dict[str, type[MDIntegrator]] = {}
+
+    @classmethod
+    def register(mcs, name: str, integrator_class: type[MDIntegrator]):
+        """Register a new class."""
+        mcs._registry[name] = integrator_class
+
+    @classmethod
+    def get(mcs, name):
+        """Return a class if the name exists."""
+        return mcs._registry.get(name, None)
+
+    @classmethod
+    def get_all(mcs):
+        return mcs._registry
+
+    @classmethod
+    def register_integrator(mcs, name: str | None = None):
+        """Create a decorator as a shortcut for registering."""
+
+        def decorate(integrator_class: type[MDIntegrator]):
+            """Define the inner part of the decorator."""
+            name_ = name if name else integrator_class.__name__
+            mcs.register(name_, integrator_class)
+            return integrator_class
+
+        return decorate
 
 
 class MDIntegrator(ABC):
@@ -32,7 +66,13 @@ class MDIntegrator(ABC):
     def __call__(self, system: System):
         return self.integration_step(system)
 
+    @classmethod
+    def register(cls, name: str):
+        """Register the engines."""
+        IntegratorRegistry.register(name, cls)
 
+
+@IntegratorRegistry.register_integrator()
 class Verlet(MDIntegrator):
     """The Verlet integrator."""
 
@@ -68,6 +108,7 @@ class Verlet(MDIntegrator):
         system.potential_and_force()
 
 
+@IntegratorRegistry.register_integrator()
 class VelocityVerlet(MDIntegrator):
     """The Velocity Verlet integrator."""
 
@@ -94,6 +135,7 @@ class VelocityVerlet(MDIntegrator):
         particles.vel += self.half_timestep * particles.force * imass
 
 
+@IntegratorRegistry.register_integrator()
 class LangevinOverdamped(MDIntegrator):
     """Overdamped version of the Langevin integrator.
 
@@ -177,6 +219,7 @@ class LangevinParameter:
     cho: list[np.ndarray] = field(default_factory=list)
 
 
+@IntegratorRegistry.register_integrator()
 class LangevinInertia(MDIntegrator):
     """The `Langevin`_ integrator.
 

@@ -1,10 +1,16 @@
 """Define the input file."""
+from __future__ import annotations
+
 import pathlib
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import toml
 
 from turtlemd.system import Box
+
+if TYPE_CHECKING:  # pragma: no cover
+    pass
+
 
 DEFAULT = pathlib.Path(__file__).resolve().parent / "default.toml"
 
