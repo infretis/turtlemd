@@ -15,6 +15,53 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
+def generic_factory(
+    settings: dict[str, Any],
+    registry: dict[str, type],
+    name: str = "generic",
+) -> Any | None:
+    """Create instances of classes based on settings.
+
+    This method is intended as a semi-generic factory for creating
+    instances of different objects based on simulation input settings.
+    The input settings define what classes should be created and
+    the object_map defines a mapping between settings and the
+    class.
+
+    Parameters
+    ----------
+    settings : dict
+        This defines how we set up and select the order parameter.
+    registry : dict
+        Definitions on how to initiate the different classes.
+    name : string, optional
+        Short name for the object type. Only used for error messages.
+
+    Returns
+    -------
+    out : instance of a class
+        The created object, in case we were successful. Otherwise we
+        return none.
+
+    """
+    klass_name = settings.get("class", "").lower()
+
+    if not klass_name:
+        msg = f'No "class" given for {name}! Could not create object!'
+        LOGGER.critical(msg)
+        raise ValueError(msg)
+
+    klass = registry.get(klass_name)
+
+    if klass is None:
+        msg = (
+            'Could not create unknown class "{settings["class"]}" for {name}.'
+        )
+        LOGGER.critical(msg)
+        raise ValueError(msg)
+    return initiate_instance(klass, settings)
+
+
 def get_parameter_type(arg: Parameter) -> str:
     """Determine the type of a method's parameter.
 

@@ -22,12 +22,12 @@ class IntegratorRegistry(type):
     @classmethod
     def register(mcs, name: str, integrator_class: type[MDIntegrator]):
         """Register a new class."""
-        mcs._registry[name] = integrator_class
+        mcs._registry[name.lower()] = integrator_class
 
     @classmethod
-    def get(mcs, name):
+    def get(mcs, name: str) -> type | None:
         """Return a class if the name exists."""
-        return mcs._registry.get(name, None)
+        return mcs._registry.get(name.lower(), None)
 
     @classmethod
     def get_all(mcs):
@@ -44,6 +44,11 @@ class IntegratorRegistry(type):
             return integrator_class
 
         return decorate
+
+    @classmethod
+    def __contains__(mcs, name: str) -> bool:
+        """Check if the integrator name is in the registry."""
+        return name.lower() in mcs._registry
 
 
 class MDIntegrator(ABC):
