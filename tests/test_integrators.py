@@ -8,6 +8,7 @@ from turtlemd.integrators import (
     LangevinInertia,
     LangevinOverdamped,
     LangevinParameter,
+    MDIntegrator,
     VelocityVerlet,
     Verlet,
 )
@@ -560,3 +561,12 @@ def test_langevin_integration(monkeypatch):
             assert pytest.approx(pos[0][0]) == TISMOL_POS_LANG[i]
             assert pytest.approx(vel[0][0]) == TISMOL_VEL_LANG[i]
             integrator(system)
+
+
+def test_integrator_registry():
+    """Test that we can access the integrator registry."""
+    integrators = MDIntegrator.get_all()
+    assert "verlet" in integrators
+    assert issubclass(integrators["verlet"], Verlet)
+    vverlet = MDIntegrator.get("velocityverlet")
+    assert issubclass(vverlet, VelocityVerlet)
