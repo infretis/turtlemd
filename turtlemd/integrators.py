@@ -2,24 +2,33 @@
 from __future__ import annotations
 
 import logging
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.random import Generator, default_rng
 
-from turtlemd.common import Registry
 from turtlemd.system.system import System
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
-class CombinedMeta(ABCMeta, Registry):
-    pass
+INTEGRATORS = {}
 
 
-class MDIntegrator(metaclass=CombinedMeta):
+def register_integrator(name=None):
+    def decorator(cls):
+        nonlocal name
+        if name is None:
+            name = cls.__name__
+        INTEGRATORS[name.lower()] = cls
+        return cls
+
+    return decorator
+
+
+class MDIntegrator(ABC):
     """Base class for MD integrators."""
 
     timestep: float  # The timestep
@@ -40,6 +49,7 @@ class MDIntegrator(metaclass=CombinedMeta):
         return self.integration_step(system)
 
 
+@register_integrator()
 class Verlet(MDIntegrator):
     """The Verlet integrator."""
 
@@ -75,6 +85,7 @@ class Verlet(MDIntegrator):
         system.potential_and_force()
 
 
+@register_integrator()
 class VelocityVerlet(MDIntegrator):
     """The Velocity Verlet integrator."""
 
@@ -101,6 +112,7 @@ class VelocityVerlet(MDIntegrator):
         particles.vel += self.half_timestep * particles.force * imass
 
 
+@register_integrator()
 class LangevinOverdamped(MDIntegrator):
     """Overdamped version of the Langevin integrator.
 
@@ -184,6 +196,7 @@ class LangevinParameter:
     cho: list[np.ndarray] = field(default_factory=list)
 
 
+@register_integrator()
 class LangevinInertia(MDIntegrator):
     """The `Langevin`_ integrator.
 

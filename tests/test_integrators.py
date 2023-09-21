@@ -5,10 +5,10 @@ from numpy.random import Generator, default_rng
 
 import turtlemd.integrators
 from turtlemd.integrators import (
+    INTEGRATORS,
     LangevinInertia,
     LangevinOverdamped,
     LangevinParameter,
-    MDIntegrator,
     VelocityVerlet,
     Verlet,
 )
@@ -565,8 +565,7 @@ def test_langevin_integration(monkeypatch):
 
 def test_integrator_registry():
     """Test that we can access the integrator registry."""
-    integrators = MDIntegrator.get_all()
-    assert "verlet" in integrators
-    assert issubclass(integrators["verlet"], Verlet)
-    vverlet = MDIntegrator.get("velocityverlet")
+    assert "verlet" in INTEGRATORS
+    assert issubclass(INTEGRATORS["verlet"], Verlet)
+    vverlet = INTEGRATORS.get("velocityverlet", None)
     assert issubclass(vverlet, VelocityVerlet)
