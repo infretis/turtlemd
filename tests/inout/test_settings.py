@@ -1,4 +1,5 @@
 """Test that we can read and interpret the input file."""
+import logging
 import pathlib
 
 import numpy as np
@@ -6,8 +7,10 @@ import pytest
 
 from turtlemd.inout.settings import (
     create_box_from_settings,
+    create_integrator_from_settings,
     read_settings_file,
 )
+from turtlemd.integrators import Verlet
 
 HERE = pathlib.Path(__file__).resolve().parent
 
@@ -26,3 +29,24 @@ def test_create_box():
     box = create_box_from_settings(settings)
     assert len(box.periodic) == 3
     assert all(box.periodic)
+
+
+def test_create_integrator(caplog):
+    """Test the creation of integrators from settings."""
+    settings = read_settings_file(HERE / "verlet.toml")
+    integ = create_integrator_from_settings(settings)
+    assert integ.timestep == 1234.5678
+    assert isinstance(integ, Verlet)
+
+    settings = read_settings_file(HERE / "verlet.toml")
+    settings["integrator"].pop("class")
+    with pytest.raises(ValueError):
+        with caplog.at_level(logging.ERROR):
+            create_integrator_from_settings(settings)
+            assert 'No "class" given for integrator' in caplog.text
+
+    settings = read_settings_file(HERE / "integrator.toml")
+    with pytest.raises(ValueError):
+        with caplog.at_level(logging.ERROR):
+            create_integrator_from_settings(settings)
+            assert "Could not create unknown class" in caplog.text

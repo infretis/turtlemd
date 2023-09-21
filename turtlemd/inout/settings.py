@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any
 
 import toml
 
+from turtlemd.inout.common import generic_factory
+from turtlemd.integrators import INTEGRATORS, MDIntegrator
 from turtlemd.system import Box
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -15,7 +17,7 @@ if TYPE_CHECKING:  # pragma: no cover
 DEFAULT = pathlib.Path(__file__).resolve().parent / "default.toml"
 
 
-def read_settings_file(settings_file: str) -> dict[str, Any]:
+def read_settings_file(settings_file: str | pathlib.Path) -> dict[str, Any]:
     """Read settings from the given file."""
     default = toml.load(DEFAULT)
     settings = toml.load(settings_file)
@@ -46,3 +48,12 @@ def create_box_from_settings(settings: dict[str, Any]) -> Box:
         settings["box"]["periodic"] = periodic
 
     return Box(low=low, high=high, periodic=periodic)
+
+
+def create_integrator_from_settings(
+    settings: dict[str, Any]
+) -> MDIntegrator | None:
+    """Create an integrator from settings."""
+    return generic_factory(
+        settings["integrator"], INTEGRATORS, name="integrator"
+    )

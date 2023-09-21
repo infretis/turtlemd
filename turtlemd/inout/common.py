@@ -48,17 +48,16 @@ def generic_factory(
 
     if not klass_name:
         msg = f'No "class" given for {name}! Could not create object!'
-        LOGGER.critical(msg)
+        LOGGER.error(msg)
         raise ValueError(msg)
 
-    klass = registry.get(klass_name)
+    klass = registry.get(klass_name, None)
 
     if klass is None:
-        msg = (
-            'Could not create unknown class "{settings["class"]}" for {name}.'
-        )
-        LOGGER.critical(msg)
+        msg = f'Could not create unknown {name} class "{settings["class"]}"!'
+        LOGGER.error(msg)
         raise ValueError(msg)
+    settings.pop("class", None)
     return initiate_instance(klass, settings)
 
 
