@@ -8,11 +8,27 @@ import pytest
 from turtlemd.inout.settings import (
     create_box_from_settings,
     create_integrator_from_settings,
+    create_system_from_settings,
     read_settings_file,
+    search_for_setting,
 )
 from turtlemd.integrators import Verlet
 
 HERE = pathlib.Path(__file__).resolve().parent
+
+
+def test_search_for_setting():
+    """Test that we can search for settings."""
+    settings = read_settings_file(HERE / "nesting.toml")
+    assert settings["system"]["particles"]["file"] == "system.particles"
+    assert settings["system"]["file"] == "system"
+    assert settings["x"]["y"]["z"]["w"]["file"] == "x.y.z.w"
+    match = search_for_setting(settings, "file")
+    for item in match:
+        item["file"] = "updated"
+    assert settings["system"]["particles"]["file"] == "updated"
+    assert settings["system"]["file"] == "updated"
+    assert settings["x"]["y"]["z"]["w"]["file"] == "updated"
 
 
 def test_create_box():
@@ -50,3 +66,10 @@ def test_create_integrator(caplog):
         with caplog.at_level(logging.ERROR):
             create_integrator_from_settings(settings)
             assert "Could not create unknown class" in caplog.text
+
+
+def test_create_system():
+    """Test that we can create systems."""
+    settings_file = HERE / "system.toml"
+    settings = read_settings_file(settings_file)
+    create_system_from_settings(settings)
