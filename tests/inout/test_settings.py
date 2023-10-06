@@ -1,6 +1,7 @@
 """Test that we can read and interpret the input file."""
 import logging
 import pathlib
+import shutil
 
 import numpy as np
 import pytest
@@ -47,10 +48,11 @@ def test_create_box():
     assert all(box.periodic)
 
 
-def test_create_integrator(caplog):
+def test_create_integrator(caplog: pytest.LogCaptureFixture):
     """Test the creation of integrators from settings."""
     settings = read_settings_file(HERE / "verlet.toml")
     integ = create_integrator_from_settings(settings)
+    assert integ is not None
     assert integ.timestep == 1234.5678
     assert isinstance(integ, Verlet)
 
@@ -68,8 +70,27 @@ def test_create_integrator(caplog):
             assert "Could not create unknown class" in caplog.text
 
 
-def test_create_system():
+def test_create_system(tmp_path: pathlib.PosixPath):
     """Test that we can create systems."""
     settings_file = HERE / "system.toml"
     settings = read_settings_file(settings_file)
-    create_system_from_settings(settings)
+    system = create_system_from_settings(settings)
+    correct = np.array([[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]])
+    assert pytest.approx(system.particles.pos) == correct
+    # Test that we can read relative paths:
+    settings_file = HERE / "config" / "system_one_down.toml"
+    settings = read_settings_file(settings_file)
+    system = create_system_from_settings(settings)
+    correct2 = np.full((2, 3), 8.0)
+    assert pytest.approx(system.particles.pos) == correct2
+    # Test a absolute path:
+    new_file = (tmp_path / "start_absolute.xyz").resolve()
+    shutil.copy(HERE / "config" / "start.xyz", new_file)
+    settings["particles"] = {"file": new_file}
+    system = create_system_from_settings(settings)
+    assert pytest.approx(system.particles.pos) == correct
+    # Test a missing file:
+    with pytest.raises(FileNotFoundError):
+        new_file = (tmp_path / "missing_file.xyz").resolve()
+        settings["particles"] = {"file": new_file}
+        create_system_from_settings(settings)

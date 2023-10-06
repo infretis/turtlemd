@@ -86,16 +86,18 @@ def create_integrator_from_settings(
 def create_system_from_settings(settings: dict[str, Any]) -> System:
     """Create a system from the given settings."""
     xyz_filename = pathlib.Path(settings["particles"]["file"])
-    base_dir = settings["settings"]["directory"]
-    xyz_file = base_dir / xyz_filename
 
-    if not xyz_file.is_file():
-        msg = "Could not find coordiante file: %s. Will use: %s"
-        LOGGER.critical(msg, xyz_file, xyz_filename)
+    if xyz_filename.is_absolute() and xyz_filename.is_file():
         xyz_file = xyz_filename
+    else:
+        base_dir = settings["settings"]["directory"]
+        xyz_file = (base_dir / xyz_filename).resolve()
+        if not xyz_file.is_file():
+            msg = "Coordinate file %s not found."
+            LOGGER.critical(msg, xyz_file)
+            raise FileNotFoundError(msg, xyz_file)
 
-    xyz_file.resolve()
-    msg = "Initial coordinates from file: %s"
+    msg = "Loading initial coordinates from file: %s"
     LOGGER.info(msg, xyz_file)
 
     system = System(
