@@ -23,9 +23,7 @@ def create_system():
     for xyz in pos:
         particles.add_particle(pos=xyz, mass=1.0, ptype=0, name="Ar")
 
-    generate_maxwell_velocities(
-        particles, rgen=default_rng(), temperature=0.8
-    )
+    generate_maxwell_velocities(particles, rgen=default_rng(), temperature=0.8)
 
     lennard = LennardJonesCut(dim=3, shift=True, mixing="geometric")
     parameters = {
