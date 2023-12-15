@@ -1,6 +1,6 @@
 """Define a list of particles.
 
-Tha particle list collects the mass, positions, velocities,
+The particle list collects the mass, positions, velocities,
 forces, types, etc. for a collection of particles.
 """
 from collections.abc import Iterator

@@ -109,7 +109,7 @@ def test_mix_sixthpower():
 
 
 def test_unkown_mixing():
-    """Test that we fail for an unknow mixing rule."""
+    """Test that we fail for an unknown mixing rule."""
     with pytest.raises(ValueError):
         mix_parameters(1, 2, 3, 4, 5, 6, mixing="?")
 

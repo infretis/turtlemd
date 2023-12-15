@@ -89,7 +89,7 @@ def get_args_and_kwargs(
 ) -> tuple[list[Any], dict[str, Any]]:
     """Extract arguments for a class's constructor from given settings.
 
-    This method identifies the required arguments for the constuctor
+    This method identifies the required arguments for the constructor
     of `klass` and retrieves their values from the `settings` dictionary.
 
     Args:
