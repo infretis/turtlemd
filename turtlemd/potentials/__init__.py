@@ -1,3 +1,4 @@
+"""Import and make potentials available."""
 from .lennardjones import LennardJonesCut
 from .well import DoubleWell, DoubleWellPair
 

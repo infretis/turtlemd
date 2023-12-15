@@ -24,8 +24,7 @@ class Snapshot:
 
 
 def read_xyz_file(filename: str | pathlib.Path) -> Iterator[Snapshot]:
-    """Read configurations from a xyz-file"""
-
+    """Read configurations from a xyz-file."""
     lines_to_read = 0
     snapshot = None
     with open(filename) as fileh:

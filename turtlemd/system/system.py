@@ -76,7 +76,7 @@ class System:
         return v_pot, force, virial
 
     def potential(self):
-        """ "Evaluate the potential energy."""
+        """Evaluate the potential energy."""
         v_pot = sum(pot.potential(self) for pot in self.potentials)
         self.particles.v_pot = v_pot
         return v_pot

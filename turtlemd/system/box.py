@@ -62,6 +62,7 @@ class Box:
         high: np.ndarray | list[float] | list[int] | None = None,
         periodic: list[bool] | None = None,
     ):
+        """Set up a simulation box."""
         self.dim = guess_dimensionality(low=low, high=high, periodic=periodic)
 
         if periodic is not None:
