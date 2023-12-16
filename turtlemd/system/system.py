@@ -5,15 +5,15 @@ from typing import TYPE_CHECKING, Any, TypedDict
 
 import numpy as np
 
-if TYPE_CHECKING:  # pragma: no cover
-    from turtlemd.system.box import Box
-    from turtlemd.system.particles import Particles
-
 from turtlemd.system.particles import (
     kinetic_energy,
     kinetic_temperature,
     pressure_tensor,
 )
+
+if TYPE_CHECKING:  # pragma: no cover
+    from turtlemd.system.box import Box
+    from turtlemd.system.particles import Particles
 
 
 class Thermo(TypedDict):
