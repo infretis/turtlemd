@@ -1,12 +1,19 @@
 """Methods to read particles from xyz-files."""
+
+from __future__ import annotations
+
 import logging
 import pathlib
 from collections.abc import Iterator
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from turtlemd.system.particles import Particles
+
+if TYPE_CHECKING:  # pragma: no cover
+    from turtlemd.system import System
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
@@ -97,3 +104,13 @@ def particles_from_xyz_file(
             ptype=ptypes.get(atom, -1),
         )
     return particles
+
+
+def system_to_xyz(system: System, filename: str | pathlib.Path) -> None:
+    """Write the system configuration to a xyz-file.
+
+    Args:
+        system: The system to get the particles from.
+        filename: The path to the file to write.
+    """
+    pass

@@ -2,7 +2,7 @@
 import argparse
 
 from turtlemd.inout.settings import (
-    create_box_from_settings,
+    create_system_from_settings,
     read_settings_file,
 )
 from turtlemd.version import __version__
@@ -15,7 +15,11 @@ def main():
         description="Run TurtleMD from input files.",
     )
     parser.add_argument(
-        "-i", "--input_file", help="path to the input TOML file.", type=str
+        "-i",
+        "--input_file",
+        help="path to the input TOML file.",
+        type=str,
+        required=True,
     )
     parser.add_argument(
         "-v",
@@ -27,11 +31,7 @@ def main():
     args = parser.parse_args()
 
     settings = read_settings_file(args.input_file)
-    create_box_from_settings(settings)
-    print(settings)
+    system = create_system_from_settings(settings)
+    print(system)
 
     return settings
-
-
-if __name__ == "__main__":
-    main()

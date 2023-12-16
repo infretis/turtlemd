@@ -5,9 +5,10 @@ import pathlib
 import numpy as np
 import pytest
 
-from turtlemd.tools.xyz import particles_from_xyz_file, read_xyz_file
+from turtlemd.inout.xyz import particles_from_xyz_file, read_xyz_file
 
 HERE = pathlib.Path(__file__).resolve().parent
+XYZDIR = HERE / "xyz"
 
 CORRECT_XYZ = np.array(
     [
@@ -22,7 +23,7 @@ CORRECT_XYZ = np.array(
 
 def test_read_single_config():
     """Test that we can read a single config from a xyz-file."""
-    xyz_file = HERE / "config.xyz"
+    xyz_file = XYZDIR / "config.xyz"
     snapshot = next(read_xyz_file(xyz_file))
     assert snapshot.natoms == 5
     assert snapshot.atoms == ["Ba", "Hf", "O", "O", "O"]
@@ -35,7 +36,7 @@ def test_read_single_config():
 
 def test_read_trajectory():
     """Test that we can read a xyz-trajectory."""
-    xyz_file = HERE / "traj.xyz"
+    xyz_file = XYZDIR / "traj.xyz"
     for i, snapshot in enumerate(read_xyz_file(xyz_file)):
         assert snapshot.natoms == 3
         xyz = np.full_like(snapshot.xyz, 500 - i)
@@ -46,7 +47,7 @@ def test_read_trajectory():
 
 
 def test_malformed_xyz(caplog):
-    xyz_file = HERE / "error.xyz"
+    xyz_file = XYZDIR / "error.xyz"
     with pytest.raises(ValueError):
         with caplog.at_level(logging.ERROR):
             next(read_xyz_file(xyz_file))
@@ -55,7 +56,7 @@ def test_malformed_xyz(caplog):
 
 def test_particles_from_xyz():
     """Test that we can create particles from a given xyz-file."""
-    xyz_file = HERE / "config.xyz"
+    xyz_file = XYZDIR / "config.xyz"
     # Set up some masses:
     masses = {
         "O": 16.0,
@@ -75,11 +76,11 @@ def test_particles_from_xyz():
     particles = particles_from_xyz_file(xyz_file, dim=2)
     assert particles.pos.shape == (5, 2)
     assert pytest.approx(particles.vel) == np.zeros((5, 2))
-    xyz_file = HERE / "config2D.xyz"
+    xyz_file = XYZDIR / "config2D.xyz"
     particles = particles_from_xyz_file(xyz_file, dim=2)
     assert particles.pos.shape == (5, 2)
     # Test what happens if we have more columns:
-    xyz_file = HERE / "traj.xyz"
+    xyz_file = XYZDIR / "traj.xyz"
     particles = particles_from_xyz_file(xyz_file, dim=3)
     assert pytest.approx(particles.pos) == np.full((3, 3), 500)
     assert pytest.approx(particles.vel) == np.full((3, 3), 500)

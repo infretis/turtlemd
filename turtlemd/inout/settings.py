@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Any
 import toml
 
 from turtlemd.inout.common import generic_factory
+from turtlemd.inout.xyz import particles_from_xyz_file
 from turtlemd.integrators import INTEGRATORS, MDIntegrator
 from turtlemd.system import Box, System
-from turtlemd.tools.xyz import particles_from_xyz_file
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -22,8 +22,9 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
-def read_settings_file(settings_file: pathlib.Path) -> dict[str, Any]:
+def read_settings_file(settings_file: pathlib.Path | str) -> dict[str, Any]:
     """Read settings from the given file."""
+    settings_file = pathlib.Path(settings_file)
     default = toml.load(DEFAULT)
     settings = toml.load(settings_file)
     settings = deep_update(default, settings)
