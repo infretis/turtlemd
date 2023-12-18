@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from turtlemd.inout.xyz import (
+    pad_to_nd,
     particles_from_xyz_file,
     read_xyz_file,
     system_to_xyz,
@@ -96,9 +97,34 @@ def test_particles_from_xyz():
     assert pytest.approx(particles.force) == np.full((3, 2), 500)
 
 
-def create_test_system():
+def test_pad_to_nd():
+    """Test that we can pad 1D and 2D coordinates."""
+    vec1 = np.array(
+        [
+            1,
+        ]
+    )
+    vec2 = np.array([1, 2])
+    vec3 = np.array([1, 2, 3])
+    vec4 = np.array([1, 2, 3, 4])
+    pad_to_nd(vec1, dim=3)
+    assert pytest.approx(np.array([1, 0, 0])) == pad_to_nd(vec1, dim=3)
+    assert pytest.approx(np.array([1, 2, 0])) == pad_to_nd(vec2, dim=3)
+    assert pytest.approx(vec3) == pad_to_nd(vec3, dim=3)
+    assert pytest.approx(vec4) == pad_to_nd(vec4, dim=3)
+
+
+def create_test_system(lattice="fcc"):
     """Create a test system."""
-    xyz, size = generate_lattice("fcc", [3, 3, 3], density=0.9)
+    if lattice == "fcc":
+        xyz, size = generate_lattice("fcc", [3, 3, 3], density=0.9)
+    elif lattice == "sq2":
+        xyz, size = generate_lattice(lattice, [3, 3], density=0.9)
+    else:
+        xyz = [
+            1.0,
+        ]
+        size = [None, None]
     box = Box(low=size[:, 0], high=size[:, 1])
     particles = Particles(dim=box.dim)
     for pos in xyz:
@@ -126,3 +152,34 @@ def test_system_to_xyz(tmp_path: pathlib.PosixPath):
             )
         elif i == 1:
             assert snapshot.comment.strip() == "Second frame"
+
+
+def test_system_to_xyz_2dim(tmp_path: pathlib.PosixPath):
+    """Test that we can write XYZ-files when the system is 2D or 1D."""
+    # For 2D:
+    system = create_test_system(lattice="sq2")
+    xyz_file = (tmp_path / "systemsq2.xyz").resolve()
+    system_to_xyz(system, xyz_file)
+    particles = particles_from_xyz_file(xyz_file)
+    assert pytest.approx(particles.pos[:, 0]) == system.particles.pos[:, 0]
+    assert pytest.approx(particles.pos[:, 1]) == system.particles.pos[:, 1]
+    assert particles.pos.shape == (18, 3)
+    assert system.particles.pos.shape == (18, 2)
+    assert pytest.approx(particles.pos[:, 2]) == np.zeros(18)
+
+    # For 1D:
+    box = Box(periodic=[False])
+    particles = Particles(dim=box.dim)
+    for i in range(3):
+        particles.add_particle(
+            pos=[i],
+            mass=1.0,
+            name="Ar",
+            ptype=0,
+        )
+        system_1d = System(box=box, particles=particles)
+        xyz_file = (tmp_path / "system1D.xyz").resolve()
+        system_to_xyz(system_1d, xyz_file)
+        particles_read = particles_from_xyz_file(xyz_file)
+        pos1 = particles_read.pos[:, 0]
+        assert pytest.approx(pos1) == system_1d.particles.pos.flatten()

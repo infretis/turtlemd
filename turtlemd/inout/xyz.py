@@ -19,6 +19,12 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
+def pad_to_nd(x: np.ndarray, dim: int = 3) -> np.ndarray:
+    """Pad 1D and 2D vectors to 3D."""
+    length = max(0, dim - len(x))
+    return np.pad(x, (0, length), mode="constant")
+
+
 @dataclass
 class Snapshot:
     """Store coordinates and atoms for a snapshot."""
@@ -133,5 +139,5 @@ def system_to_xyz(
         output_xyz.write(txt_title)
         for part in system.particles:
             name = f"{part['name']:5s}"
-            pos = " ".join([f"{i:15.9f}" for i in part["pos"]])
-            output_xyz.write(f"{name} {pos}\n")
+            pos = " ".join([f"{i:15.9f}" for i in pad_to_nd(part["pos"])])
+            output_xyz.write(f"{name} {pos}\n")
