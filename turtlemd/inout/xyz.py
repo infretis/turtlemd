@@ -34,7 +34,7 @@ def read_xyz_file(filename: str | pathlib.Path) -> Iterator[Snapshot]:
     """Read configurations from a xyz-file."""
     lines_to_read = 0
     snapshot = None
-    with open(filename) as fileh:
+    with open(filename, encoding="utf-8") as fileh:
         for lines in fileh:
             if lines_to_read == 0:
                 # This is a new frame
@@ -106,11 +106,32 @@ def particles_from_xyz_file(
     return particles
 
 
-def system_to_xyz(system: System, filename: str | pathlib.Path) -> None:
+def system_to_xyz(
+    system: System,
+    filename: str | pathlib.Path,
+    filemode: str = "w",
+    title: str | None = None,
+) -> None:
     """Write the system configuration to a xyz-file.
 
     Args:
         system: The system to get the particles from.
         filename: The path to the file to write.
+        filemode: If "w" this method will overwrite if the `filename`
+            already exists. Otherwise it will append to it.
+        title: A string to use as the title for the frame.
     """
-    pass
+    if filemode != "w":
+        filemode = "a"
+    if title is None:
+        box = " ".join([f"{i}" for i in system.box.box_matrix.flatten()])
+        txt_title = f"# TurtleMD system. Box: {box}\n"
+    else:
+        txt_title = f"{title}\n"
+    with open(filename, filemode, encoding="utf-8") as output_xyz:
+        output_xyz.write(f"{system.particles.npart}\n")
+        output_xyz.write(txt_title)
+        for part in system.particles:
+            name = f"{part['name']:5s}"
+            pos = " ".join([f"{i:15.9f}" for i in part["pos"]])
+            output_xyz.write(f"{name} {pos}\n")

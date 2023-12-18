@@ -5,7 +5,13 @@ import pathlib
 import numpy as np
 import pytest
 
-from turtlemd.inout.xyz import particles_from_xyz_file, read_xyz_file
+from turtlemd.inout.xyz import (
+    particles_from_xyz_file,
+    read_xyz_file,
+    system_to_xyz,
+)
+from turtlemd.system import Box, Particles, System
+from turtlemd.tools import generate_lattice
 
 HERE = pathlib.Path(__file__).resolve().parent
 XYZDIR = HERE / "xyz"
@@ -88,3 +94,35 @@ def test_particles_from_xyz():
     assert pytest.approx(particles.pos) == np.full((3, 2), 500)
     assert pytest.approx(particles.vel) == np.full((3, 2), 500)
     assert pytest.approx(particles.force) == np.full((3, 2), 500)
+
+
+def create_test_system():
+    """Create a test system."""
+    xyz, size = generate_lattice("fcc", [3, 3, 3], density=0.9)
+    box = Box(low=size[:, 0], high=size[:, 1])
+    particles = Particles(dim=box.dim)
+    for pos in xyz:
+        particles.add_particle(pos=pos, mass=1.0, name="Ar", ptype=0)
+    return System(box=box, particles=particles)
+
+
+def test_system_to_xyz(tmp_path: pathlib.PosixPath):
+    """Test that we can create a XYZ file from a system."""
+    system = create_test_system()
+    xyz_file = (tmp_path / "system.xyz").resolve()
+    system_to_xyz(system, xyz_file)
+    particles = particles_from_xyz_file(xyz_file)
+    assert pytest.approx(particles.pos) == system.particles.pos
+    positions = [system.particles.pos.copy()]
+    # Test that we can append to a file to create two frames:
+    system.particles.pos += 1.234
+    positions.append(system.particles.pos.copy())
+    system_to_xyz(system, xyz_file, filemode="a", title="Second frame")
+    for i, snapshot in enumerate(read_xyz_file(xyz_file)):
+        assert pytest.approx(snapshot.xyz) == positions[i]
+        if i == 0:
+            assert snapshot.comment.startswith(
+                "# TurtleMD system. Box: 4.9324"
+            )
+        elif i == 1:
+            assert snapshot.comment.strip() == "Second frame"
