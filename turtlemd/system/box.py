@@ -32,8 +32,9 @@ def guess_dimensionality(
         raise ValueError("Inconsistent box dimensions for low/high/periodic!")
     return dims[0]  # They should all be equal, pick the first.
 
+
 def cosine(angle: float) -> float:
-    """Return cosine of an angle in degrees.
+    """Return cosine of an angle given in degrees.
 
     Note:
         If the angle is close to 90.0 we return 0.0.
@@ -46,6 +47,45 @@ def cosine(angle: float) -> float:
     """
     radians = np.radians(angle)
     return np.where(np.isclose(angle, 90.0), 0.0, np.cos(radians))
+
+
+def box_matrix_from_angles(
+    length: np.ndarray, alpha: float, beta: float, gamma: float, dim: int
+) -> np.ndarray:
+    """Return the box matrix from given lengths and angles.
+
+    Args:
+        length: The box lengths as a 1D array.
+        alpha: The alpha angle, in degrees.
+        beta: The beta angle, in degrees.
+        gamma: The gamma angle, in degrees.
+        dim: The dimensionality.
+
+    Returns:
+        The (upper triangular) box matrix.
+
+    Note:
+        The angles and box lengths follow the convention from
+        LAMMPS (https://docs.lammps.org/Howto_triclinic.html).
+    """
+    box_matrix = np.zeros((dim, dim))
+    cos_alpha = cosine(alpha)
+    cos_beta = cosine(beta)
+    cos_gamma = cosine(gamma)
+    box_matrix[0, 0] = length[0]
+    box_matrix[0, 1] = length[1] * cos_gamma
+    box_matrix[1, 1] = np.sqrt(length[1] ** 2 - box_matrix[0, 1] ** 2)
+    if dim > 2:
+        box_matrix[0, 2] = length[2] * cos_beta
+        box_matrix[1, 2] = (
+            length[1] * length[2] * cos_alpha
+            - box_matrix[0, 1] * box_matrix[0, 2]
+        ) / box_matrix[1, 1]
+        box_matrix[2, 2] = np.sqrt(
+            length[2] ** 2 - box_matrix[0, 2] ** 2 - box_matrix[1, 2] ** 2
+        )
+    return box_matrix
+
 
 class BoxBase(ABC):
     """Define a generic simulation box.
@@ -126,9 +166,9 @@ class TriclinicBox(BoxBase):
         low: np.ndarray | list[float] | list[int] | None = None,
         high: np.ndarray | list[float] | list[int] | None = None,
         periodic: list[bool] | None = None,
-        alpha: float | None=None,
-        beta: float | None=None,
-        gamma: float | None=None,
+        alpha: float | None = None,
+        beta: float | None = None,
+        gamma: float | None = None,
     ):
         """Create the box."""
         super().__init__(
@@ -154,9 +194,21 @@ class TriclinicBox(BoxBase):
         self.length = self.high - self.low
         self.ilength = 1.0 / self.length
 
+        tricl = any(i is not None for i in [alpha, beta, gamma])
+
         self.alpha = alpha if alpha is not None else 90
         self.beta = beta if beta is not None else 90
         self.gamma = gamma if gamma is not None else 90
+
+        # Create the box matrix:
+        self.box_matrix = np.zeros((self.dim, self.dim))
+        for i in range(self.dim):
+            self.box_matrix[i, i] = self.length[i]
+
+        if tricl and self.dim > 1:
+            self.box_matrix = box_matrix_from_angles(
+                self.length, self.alpha, self.beta, self.gamma, self.dim
+            )
 
     def pbc_wrap(self, pos: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to positions.
@@ -188,11 +240,12 @@ class TriclinicBox(BoxBase):
 
     def __str__(self) -> str:
         """Return a string describing the box."""
-        msg = [
-            f"Hello, this is triclinic box and my matrix is:\n{self.box_matrix}",
-            f"Periodic? {self.periodic}",
-        ]
-        return "\n".join(msg)
+        msg = (
+            "Hello, this is triclinic box and my matrix "
+            f"is:\n{self.box_matrix}"
+            f"Periodic? {self.periodic}"
+        )
+        return msg
 
 
 class Box(TriclinicBox):
@@ -225,10 +278,6 @@ class Box(TriclinicBox):
             beta=None,
             gamma=None,
         )
-
-        self.box_matrix = np.zeros((self.dim, self.dim))
-        for i in range(self.dim):
-            self.box_matrix[i, i] = self.length[i]
 
     def pbc_wrap(self, pos: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to positions.
@@ -295,10 +344,8 @@ class Box(TriclinicBox):
 
     def __str__(self) -> str:
         """Return a string describing the box."""
-        msg = [
-            f"Hello, this is box and my matrix is:\n{self.box_matrix}",
-            f"Periodic? {self.periodic}",
-        ]
-        return "\n".join(msg)
-
-
+        msg = (
+            f"Hello, this is box and my matrix is:\n{self.box_matrix}"
+            f"\nPeriodic? {self.periodic}"
+        )
+        return msg
