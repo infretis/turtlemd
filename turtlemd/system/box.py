@@ -221,7 +221,10 @@ class TriclinicBox(BoxBase):
             np.ndarray: The periodic-boundary wrapped positions,
                 same shape as parameter `pos`.
         """
-        pass
+        box_inv = np.linalg.inv(self.box_matrix)
+        frac = pos @ box_inv.T
+        frac -= np.floor(frac)
+        return frac @ self.box_matrix.T + self.low
 
     def pbc_dist(self, distance: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to a distance vector."""
