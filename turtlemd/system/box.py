@@ -45,8 +45,9 @@ def cosine(angle: float) -> float:
     Returns:
         The cosine of the angle.
     """
-    radians = np.radians(angle)
-    return np.where(np.isclose(angle, 90.0), 0.0, np.cos(radians))
+    if np.isclose(angle, 90):
+        return 0.0
+    return np.cos(np.radians(angle))
 
 
 def box_matrix_from_angles(
@@ -56,9 +57,9 @@ def box_matrix_from_angles(
 
     Args:
         length: The box lengths as a 1D array.
-        alpha: The alpha angle, in degrees.
-        beta: The beta angle, in degrees.
-        gamma: The gamma angle, in degrees.
+        alpha: The angle between b and c in degrees.
+        beta: The angle between a and c in degrees.
+        gamma: The angle between a and b in degrees.
         dim: The dimensionality.
 
     Returns:
@@ -95,18 +96,29 @@ class BoxBase(ABC):
         dof (np.ndarray): The degrees of freedom removed by periodicity.
         periodic (list[bool]): Specifies which dimensions for
             which we should apply periodic boundaries.
-        box_matrix (np.ndarray): 2D matrix, representing the simulation cell.
+        box_matrix (np.ndarray): 2D matrix (upper triangular), representing
+            the simulation cell.
+        low (np.ndarray): The lower limits of the simulation box.
+        high (np.ndarray): The upper limits of the simulation box.
+        length (np.ndarray): The box lengths
+        ilength (np.ndarray): The inverse box lengths.
     """
 
     dim: int
     dof: np.ndarray
     periodic: list[bool]
     box_matrix: np.ndarray
+    low: np.ndarray
+    high: np.ndarray
+    length: np.ndarray
+    ilength: np.ndarray
 
     def __init__(
         self,
         dim: int,
         periodic: list[bool] | None,
+        low: np.ndarray | list[float] | list[int] | None = None,
+        high: np.ndarray | list[float] | list[int] | None = None,
     ) -> None:
         """Create a generic box.
 
@@ -125,6 +137,24 @@ class BoxBase(ABC):
         # boundaries:
         self.dof = np.array([1 if i else 0 for i in self.periodic])
         self.box_matrix = np.zeros((self.dim, self.dim))
+        # Interpret low and high arguments:
+        if low is not None:
+            self.low = np.asarray(low).astype(float)
+        else:
+            self.low = np.array(
+                [0.0 if i else -float("inf") for i in self.periodic]
+            )
+            LOGGER.warning("Set box low values: %s", self.low)
+
+        if high is not None:
+            self.high = np.asarray(high).astype(float)
+        else:
+            self.high = np.array(
+                [1.0 if i else float("inf") for i in self.periodic]
+            )
+            LOGGER.warning("Set box high values: %s", self.high)
+        self.length = self.high - self.low
+        self.ilength = 1.0 / self.length
 
     def volume(self) -> float:
         """Calculate volume of the simulation cell."""
@@ -147,16 +177,11 @@ class TriclinicBox(BoxBase):
     """An triclinic simulation box.
 
     Attributes:
-        low (np.ndarray): The lower limits of the simulation box.
-        high (np.ndarray): The upper limits of the simulation box.
-        length (np.ndarray): The box lengths
-        ilength (np.ndarray): The inverse box lengths.
+        alpha (float): The angle between b and c in degrees.
+        beta (float): The angle between a and c in degrees.
+        gamma (float): The angle between a and b in degrees.
     """
 
-    low: np.ndarray
-    high: np.ndarray
-    length: np.ndarray
-    ilength: np.ndarray
     alpha: float
     beta: float
     gamma: float
@@ -174,25 +199,9 @@ class TriclinicBox(BoxBase):
         super().__init__(
             dim=guess_dimensionality(low=low, high=high, periodic=periodic),
             periodic=periodic,
+            low=low,
+            high=high,
         )
-        if low is not None:
-            self.low = np.asarray(low).astype(float)
-        else:
-            self.low = np.array(
-                [0.0 if i else -float("inf") for i in self.periodic]
-            )
-            LOGGER.warning("Set box low values: %s", self.low)
-
-        if high is not None:
-            self.high = np.asarray(high).astype(float)
-        else:
-            self.high = np.array(
-                [1.0 if i else float("inf") for i in self.periodic]
-            )
-            LOGGER.warning("Set box high values: %s", self.high)
-
-        self.length = self.high - self.low
-        self.ilength = 1.0 / self.length
 
         tricl = any(i is not None for i in [alpha, beta, gamma])
 
@@ -200,11 +209,7 @@ class TriclinicBox(BoxBase):
         self.beta = beta if beta is not None else 90
         self.gamma = gamma if gamma is not None else 90
 
-        # Create the box matrix:
         self.box_matrix = np.zeros((self.dim, self.dim))
-        for i in range(self.dim):
-            self.box_matrix[i, i] = self.length[i]
-
         if tricl and self.dim > 1:
             self.box_matrix = box_matrix_from_angles(
                 self.length, self.alpha, self.beta, self.gamma, self.dim
@@ -223,12 +228,12 @@ class TriclinicBox(BoxBase):
         """
         box_inv = np.linalg.inv(self.box_matrix)
         frac = pos @ box_inv.T
-        frac -= np.floor(frac)
+        frac = frac - np.floor(frac)
         return frac @ self.box_matrix.T + self.low
 
     def pbc_dist(self, distance: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to a distance vector."""
-        pass
+        return np.zeros_like(distance)
 
     def pbc_dist_matrix(self, distance: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to a matrix of distance vectors.
@@ -240,6 +245,7 @@ class TriclinicBox(BoxBase):
             np.ndarray: The PBC-wrapped distances, same shape as the
                 `distance` parameter.
         """
+        return np.zeros_like(distance)
 
     def __str__(self) -> str:
         """Return a string describing the box."""
@@ -251,20 +257,8 @@ class TriclinicBox(BoxBase):
         return msg
 
 
-class Box(TriclinicBox):
-    """An orthogonal simulation box.
-
-    Attributes:
-        low (np.ndarray): The lower limits of the simulation box.
-        high (np.ndarray): The upper limits of the simulation box.
-        length (np.ndarray): The box lengths
-        ilength (np.ndarray): The inverse box lengths.
-    """
-
-    low: np.ndarray
-    high: np.ndarray
-    length: np.ndarray
-    ilength: np.ndarray
+class Box(BoxBase):
+    """An orthogonal simulation box."""
 
     def __init__(
         self,
@@ -274,13 +268,15 @@ class Box(TriclinicBox):
     ):
         """Create the box."""
         super().__init__(
+            dim=guess_dimensionality(low=low, high=high, periodic=periodic),
             low=low,
             high=high,
             periodic=periodic,
-            alpha=None,
-            beta=None,
-            gamma=None,
         )
+        # Create the box matrix:
+        self.box_matrix = np.zeros((self.dim, self.dim))
+        for i in range(self.dim):
+            self.box_matrix[i, i] = self.length[i]
 
     def pbc_wrap(self, pos: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to positions.
