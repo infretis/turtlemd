@@ -1,10 +1,13 @@
 """Test the simulation box."""
 import logging
+import pathlib
 
 import numpy as np
 import pytest
 
-from turtlemd.system.box import Box, guess_dimensionality
+from turtlemd.system.box import Box, TriclinicBox, guess_dimensionality
+
+HERE = pathlib.Path(__file__).resolve().parent
 
 
 def test_guess_dimensionality():
@@ -159,3 +162,13 @@ def test_pbc_dist():
     dist = pos1 - pos2
     pbc_dist = box.pbc_dist(dist)
     assert pytest.approx(pbc_dist) == np.array([0, -2, -94])
+
+
+def test_triclinic_pbc_wrap():
+    """Test the triclinic PBC conditions."""
+    data_dir = HERE / "data"
+    xyz = np.loadtxt(data_dir / "pbc_triclinic_raw.data.gz")
+    box = TriclinicBox(high=[10.0, 10.0], alpha=None, beta=None, gamma=45.0)
+    wrap = box.pbc_wrap(xyz)
+    vmd = np.loadtxt(data_dir / "pbc_triclinic_wrapped_by_vmd.data.gz")
+    assert pytest.approx(wrap, abs=1e-5) == vmd
