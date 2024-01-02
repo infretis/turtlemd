@@ -1,4 +1,5 @@
 """Define a simulation box."""
+import itertools
 import logging
 from abc import ABC, abstractmethod
 
@@ -180,6 +181,12 @@ class TriclinicBox(BoxBase):
         alpha (float): The angle between b and c in degrees.
         beta (float): The angle between a and c in degrees.
         gamma (float): The angle between a and b in degrees.
+        box_matrix_inv (np.ndarray): The inverse of the box matrix.
+        translations (np.ndarray): Translation vectors to the nearest
+            images.
+        shortest_width (float): The shortest width of the box.
+        shortest_width_half (float): `0.5 * shortest_width`.
+
     """
 
     alpha: float
@@ -203,17 +210,48 @@ class TriclinicBox(BoxBase):
             high=high,
         )
 
-        tricl = any(i is not None for i in [alpha, beta, gamma])
-
         self.alpha = alpha if alpha is not None else 90
         self.beta = beta if beta is not None else 90
         self.gamma = gamma if gamma is not None else 90
 
+        tricl = not (self.alpha == self.beta == self.gamma == 90)
+
         self.box_matrix = np.zeros((self.dim, self.dim))
+        self.box_matrix_inv = np.zeros((self.dim, self.dim))
+        self.translations = np.zeros((3**self.dim, self.dim))
         if tricl and self.dim > 1:
-            self.box_matrix = box_matrix_from_angles(
-                self.length, self.alpha, self.beta, self.gamma, self.dim
+            self.update_box_matrix(
+                self.length, self.alpha, self.beta, self.gamma
             )
+        else:
+            msg = "Not a valid triclinic box."
+            msg += "\n-At least one angle must be != 90."
+            msg += "\n-The dimensionality must be > 1."
+            raise ValueError(msg)
+
+    def update_box_matrix(
+        self, length: np.ndarray, alpha: float, beta: float, gamma: float
+    ):
+        """Update the box matrix.
+
+        Args:
+            length (np.ndarray): The length of the box vectors.
+            alpha (float): The angle between b and c in degrees.
+            beta (float): The angle between a and c in degrees.
+            gamma (float): The angle between a and b in degrees.
+        """
+        self.box_matrix = box_matrix_from_angles(
+            length, alpha, beta, gamma, self.dim
+        )
+        self.box_matrix_inv = np.linalg.inv(self.box_matrix)
+        self.translations = np.array(
+            [
+                np.dot(self.box_matrix, np.array(index))
+                for index in itertools.product([-1, 0, 1], repeat=self.dim)
+            ]
+        )
+        self.shortest_width = np.min(np.diagonal(self.box_matrix))
+        self.shortest_width_half = 0.5 * self.shortest_width
 
     def pbc_wrap(self, pos: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to positions.
@@ -226,14 +264,37 @@ class TriclinicBox(BoxBase):
             np.ndarray: The periodic-boundary wrapped positions,
                 same shape as parameter `pos`.
         """
-        box_inv = np.linalg.inv(self.box_matrix)
-        frac = pos @ box_inv.T
+        frac = pos @ self.box_matrix_inv.T
         frac = frac - np.floor(frac)
         return frac @ self.box_matrix.T + self.low
 
     def pbc_dist(self, distance: np.ndarray) -> np.ndarray:
-        """Apply periodic boundaries to a distance vector."""
-        return np.zeros_like(distance)
+        """Apply periodic boundaries to a distance vector.
+
+        Args:
+            distance (np.ndarray): The distance vector to apply PBC to.
+
+        Note:
+            This method is based on Mezei [1], but it does not use all the
+            optimizations (since it is using numpy operations).
+
+            [1] M. Mezei, Determining Nearest Image in non-Orthogonal
+                Periodic Systems, Information Quarterly for Computer
+                Simulation of Condensed Phases, No 34, 48-51 (1992).
+                https://mezeim01.dmz.hpc.mssm.edu/ms/cv78ccp5.pdf
+        """
+        dist = distance - self.box_matrix @ np.rint(
+            self.box_matrix_inv @ distance
+        )
+        smallest = (dist, np.dot(dist, dist))
+        if np.sqrt(smallest[1]) < self.shortest_width_half:
+            return smallest[0]
+        images = dist + self.translations
+        lengths = np.sum(images * images, axis=1)
+        idx = np.argmin(lengths)
+        if lengths[idx] < smallest[1]:
+            smallest = (images[idx], lengths[idx])
+        return smallest[0]
 
     def pbc_dist_matrix(self, distance: np.ndarray) -> np.ndarray:
         """Apply periodic boundaries to a matrix of distance vectors.
@@ -245,7 +306,7 @@ class TriclinicBox(BoxBase):
             np.ndarray: The PBC-wrapped distances, same shape as the
                 `distance` parameter.
         """
-        return np.zeros_like(distance)
+        return np.array([self.pbc_dist(i) for i in distance])
 
     def __str__(self) -> str:
         """Return a string describing the box."""
