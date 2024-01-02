@@ -133,8 +133,7 @@ def test_md_simulation():
             == CORRECT_ENERGIES["temperature"][i]
         )
         assert (
-            pytest.approx(therm["pressure"])
-            == CORRECT_ENERGIES["pressure"][i]
+            pytest.approx(therm["pressure"]) == CORRECT_ENERGIES["pressure"][i]
         )
         assert pytest.approx(therm["ekin"]) == CORRECT_ENERGIES["ekin"][i]
         assert pytest.approx(therm["vpot"]) == CORRECT_ENERGIES["vpot"][i]
