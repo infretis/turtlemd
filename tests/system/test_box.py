@@ -120,6 +120,11 @@ def test_print(capfd):
     assert "Hello, this is box" in captured.out
     assert f"and my matrix is:\n{box.box_matrix}" in captured.out
 
+    box = TriclinicBox(high=[10.0, 10.0], alpha=None, beta=None, gamma=45.0)
+    print(box)
+    captured = capfd.readouterr()
+    assert "Hello, this is triclinic box and my matrix" in captured.out
+
 
 def test_pbc_wrap():
     """Test that we can wrap coordinates."""
