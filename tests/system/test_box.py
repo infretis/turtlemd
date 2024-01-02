@@ -1,10 +1,13 @@
 """Test the simulation box."""
 import logging
+import pathlib
 
 import numpy as np
 import pytest
 
-from turtlemd.system.box import Box, guess_dimensionality
+from turtlemd.system.box import Box, TriclinicBox, guess_dimensionality
+
+HERE = pathlib.Path(__file__).resolve().parent
 
 
 def test_guess_dimensionality():
@@ -79,6 +82,15 @@ def test_initiate_box(caplog):
     assert box.length[0] == float("inf")
     assert box.length[1] == float("inf")
 
+    with pytest.raises(ValueError):
+        TriclinicBox(periodic=[True])
+
+    with pytest.raises(ValueError):
+        TriclinicBox(periodic=[True, True, True])
+
+    with pytest.raises(ValueError):
+        TriclinicBox(periodic=[True, True, True], alpha=90, beta=90, gamma=90)
+
 
 def test_volume():
     """Test that we can calculate the volume."""
@@ -107,6 +119,11 @@ def test_print(capfd):
     captured = capfd.readouterr()
     assert "Hello, this is box" in captured.out
     assert f"and my matrix is:\n{box.box_matrix}" in captured.out
+
+    box = TriclinicBox(high=[10.0, 10.0], alpha=None, beta=None, gamma=45.0)
+    print(box)
+    captured = capfd.readouterr()
+    assert "Hello, this is triclinic box and my matrix" in captured.out
 
 
 def test_pbc_wrap():
@@ -159,3 +176,69 @@ def test_pbc_dist():
     dist = pos1 - pos2
     pbc_dist = box.pbc_dist(dist)
     assert pytest.approx(pbc_dist) == np.array([0, -2, -94])
+
+
+def test_triclinic_pbc_wrap_2d():
+    """Test the triclinic PBC wrapping."""
+    data_dir = HERE / "data"
+    xyz = np.loadtxt(data_dir / "pbc_triclinic_raw.data.gz")
+    box = TriclinicBox(high=[10.0, 10.0], alpha=None, beta=None, gamma=45.0)
+    wrap = box.pbc_wrap(xyz)
+    vmd = np.loadtxt(data_dir / "pbc_triclinic_wrapped_by_vmd.data.gz")
+    assert pytest.approx(wrap, abs=1e-5) == vmd
+
+
+def test_triclinic_pbc_wrap_3d():
+    """Test the triclinic PBC wrapping."""
+    data_dir = HERE / "data"
+    xyz = np.loadtxt(data_dir / "distance" / "system2.txt.gz")
+    box = TriclinicBox(
+        high=[10, 10, 10],
+        alpha=60,
+        beta=60,
+        gamma=75,
+    )
+    wrap = box.pbc_wrap(xyz)
+    vmd = np.loadtxt(data_dir / "pbc_triclinic_wrapped_by_vmd_3d.data.gz")
+    assert pytest.approx(wrap, abs=1e-5) == vmd
+
+
+def test_triclinic_pbc_dist_2d():
+    """Test the triclinic PBC for distances."""
+    data_dir = HERE / "data" / "distance"
+    xyz = np.loadtxt(data_dir / "system1.txt.gz")
+    box = TriclinicBox(
+        high=[10, 10],
+        alpha=None,
+        beta=None,
+        gamma=75,
+    )
+    distances = []
+    for xyzi in xyz:
+        dist = [np.linalg.norm(box.pbc_dist(xyzi - xyzj)) for xyzj in xyz]
+        distances.append(dist)
+    distances = np.array(distances)
+    correct = np.loadtxt(data_dir / "dist1.txt.gz")
+    assert pytest.approx(distances, abs=1e-5) == correct
+    raw_dist = [xyz[0] - xyzj for xyzj in xyz]
+    distances2 = np.linalg.norm(box.pbc_dist_matrix(raw_dist), axis=1)
+    assert pytest.approx(distances[0, :]) == distances2
+
+
+def test_triclinic_pbc_dist_3d():
+    """Test the triclinic PBC for distances."""
+    data_dir = HERE / "data" / "distance"
+    xyz = np.loadtxt(data_dir / "system2.txt.gz")
+    box = TriclinicBox(
+        high=[10, 10, 10],
+        alpha=60,
+        beta=60,
+        gamma=75,
+    )
+    distances = []
+    for xyzi in xyz:
+        dist = [np.linalg.norm(box.pbc_dist(xyzi - xyzj)) for xyzj in xyz]
+        distances.append(dist)
+    distances = np.array(distances)
+    correct = np.loadtxt(data_dir / "dist2.txt.gz")
+    assert pytest.approx(distances, abs=1e-5) == correct
