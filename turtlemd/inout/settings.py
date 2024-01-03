@@ -11,10 +11,10 @@ from turtlemd.inout.common import generic_factory
 from turtlemd.inout.xyz import particles_from_xyz_file
 from turtlemd.integrators import INTEGRATORS, MDIntegrator
 from turtlemd.system import Box, System
+from turtlemd.system.box import TriclinicBox
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
-
 
 DEFAULT = pathlib.Path(__file__).resolve().parent / "default.toml"
 
@@ -60,10 +60,9 @@ def search_for_setting(
     return found
 
 
-def create_box_from_settings(settings: dict[str, Any]) -> Box:
+def create_box_from_settings(settings: dict[str, Any]) -> Box | TriclinicBox:
     """Create a simulation box from settings."""
     low = settings["box"]["low"]
-    high = settings["box"]["high"]
     periodic = settings["box"]["periodic"]
 
     try:
@@ -72,7 +71,9 @@ def create_box_from_settings(settings: dict[str, Any]) -> Box:
         periodic = [periodic] * len(low)
         settings["box"]["periodic"] = periodic
 
-    return Box(low=low, high=high, periodic=periodic)
+    if any(angle in settings["box"] for angle in ("alpha", "beta", "gamma")):
+        return TriclinicBox(**settings["box"])
+    return Box(**settings["box"])
 
 
 def create_integrator_from_settings(

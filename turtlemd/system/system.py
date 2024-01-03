@@ -12,7 +12,7 @@ from turtlemd.system.particles import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover
-    from turtlemd.system.box import Box
+    from turtlemd.system.box import Box, TriclinicBox
     from turtlemd.system.particles import Particles
 
 
@@ -33,13 +33,13 @@ class System:
 
     """
 
-    box: Box  # The simulation box.
+    box: Box | TriclinicBox  # The simulation box.
     particles: Particles  # The particles in the system.
     potentials: list[Any]  # The force field.
 
     def __init__(
         self,
-        box: Box,
+        box: Box | TriclinicBox,
         particles: Particles,
         potentials: list[Any] | None = None,
     ):

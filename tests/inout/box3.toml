@@ -1,0 +1,6 @@
+[box]
+low = [10, 11, 12]
+high = [23, 24, 25]
+periodic = [true, true, true]
+alpha = 75
+beta = 60

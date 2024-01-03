@@ -46,6 +46,12 @@ def test_create_box():
     box = create_box_from_settings(settings)
     assert len(box.periodic) == 3
     assert all(box.periodic)
+    # Read a triclinic box:
+    settings = read_settings_file(HERE / "box3.toml")
+    boxt = create_box_from_settings(settings)
+    assert pytest.approx(boxt.alpha) == 75
+    assert pytest.approx(boxt.beta) == 60
+    assert pytest.approx(boxt.gamma) == 90
 
 
 def test_create_integrator(caplog: pytest.LogCaptureFixture):
