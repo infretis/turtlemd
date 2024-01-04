@@ -37,6 +37,6 @@ def main():
     LOGGER.info(f"Reading settings from file {args.input_file}")
     settings = read_settings_file(args.input_file)
     system = create_system_from_settings(settings)
-    LOGGER.info(f"Created system {system}")
+    LOGGER.info(f"Created system: {system}")
 
     return settings

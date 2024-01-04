@@ -8,7 +8,7 @@ from turtlemd.system.particles import Particles
 from turtlemd.system.system import System
 
 
-def test_system_setup():
+def test_system_setup(capsys):
     """Test that we can initiate a system."""
     box = Box()
     particles = Particles()
@@ -18,6 +18,10 @@ def test_system_setup():
     assert system.particles is particles
     assert system.potentials[0] is potentials[0]
     assert len(system.potentials) == 1
+
+    print(system)
+    captured = capsys.readouterr()
+    assert "TurtleMD system with" in captured.out
 
 
 def test_potential():

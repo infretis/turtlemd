@@ -128,3 +128,8 @@ class System:
         temp, _, _ = kinetic_temperature(particles, boltzmann, dof=dof)
         thermo["temperature"] = float(temp)
         return thermo
+
+    def __str__(self):
+        """Write some info about the system."""
+        msg = f"TurtleMD system with {len(self.particles)} particles."
+        return msg
