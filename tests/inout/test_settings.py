@@ -13,7 +13,12 @@ from turtlemd.inout.settings import (
     read_settings_file,
     search_for_setting,
 )
-from turtlemd.integrators import Verlet
+from turtlemd.integrators import (
+    LangevinInertia,
+    LangevinOverdamped,
+    VelocityVerlet,
+    Verlet,
+)
 
 HERE = pathlib.Path(__file__).resolve().parent
 
@@ -56,24 +61,39 @@ def test_create_box():
 
 def test_create_integrator(caplog: pytest.LogCaptureFixture):
     """Test the creation of integrators from settings."""
-    settings = read_settings_file(HERE / "verlet.toml")
+    settings = read_settings_file(HERE / "integrators" / "verlet.toml")
     integ = create_integrator_from_settings(settings)
     assert integ is not None
     assert integ.timestep == 1234.5678
     assert isinstance(integ, Verlet)
 
-    settings = read_settings_file(HERE / "verlet.toml")
+    settings = read_settings_file(HERE / "integrators" / "verlet.toml")
     settings["integrator"].pop("class")
     with pytest.raises(ValueError):
         with caplog.at_level(logging.ERROR):
             create_integrator_from_settings(settings)
             assert 'No "class" given for integrator' in caplog.text
 
-    settings = read_settings_file(HERE / "integrator.toml")
+    settings = read_settings_file(HERE / "integrators" / "integrator.toml")
     with pytest.raises(ValueError):
         with caplog.at_level(logging.ERROR):
             create_integrator_from_settings(settings)
             assert "Could not create unknown class" in caplog.text
+
+    # Test that we can create all integrators:
+    classes = (Verlet, VelocityVerlet, LangevinOverdamped, LangevinInertia)
+    files = (
+        "verlet.toml",
+        "velocityverlet.toml",
+        "langevin1.toml",
+        "langevin2.toml",
+    )
+
+    for klass, filei in zip(classes, files):
+        settings = read_settings_file(HERE / "integrators" / filei)
+        integ = create_integrator_from_settings(settings)
+        assert integ is not None
+        assert isinstance(integ, klass)
 
 
 def test_create_system(tmp_path: pathlib.PosixPath):

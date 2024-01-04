@@ -146,7 +146,12 @@ class LangevinOverdamped(MDIntegrator):
     _initiate: bool  # If True, we still need to set some parameters
 
     def __init__(
-        self, timestep: float, gamma: float, rgen: Generator, beta: float
+        self,
+        timestep: float,
+        gamma: float,
+        beta: float,
+        rgen: Generator | None = None,
+        seed: int = 0,
     ):
         """Set up the overdamped Langevin integrator."""
         super().__init__(
@@ -156,7 +161,10 @@ class LangevinOverdamped(MDIntegrator):
         )
         self.gamma = gamma
         self.sigma = 0.0
-        self.rgen = rgen
+        if rgen is None:
+            self.rgen = default_rng(seed=seed)
+        else:
+            self.rgen = rgen
         self.bddt = 0.0
         self.beta = beta
         self._initiate = True

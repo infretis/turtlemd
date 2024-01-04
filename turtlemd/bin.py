@@ -3,6 +3,7 @@ import argparse
 import logging
 
 from turtlemd.inout.settings import (
+    create_integrator_from_settings,
     create_system_from_settings,
     read_settings_file,
 )
@@ -38,5 +39,7 @@ def main():
     settings = read_settings_file(args.input_file)
     system = create_system_from_settings(settings)
     LOGGER.info(f"Created system: {system}")
+    integrator = create_integrator_from_settings(settings)
+    LOGGER.info(f"Created integrator {integrator}")
 
     return settings

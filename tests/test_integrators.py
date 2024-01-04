@@ -484,11 +484,19 @@ def test_verlet():
 def test_langevin_brownian():
     """Test the overdamped Langevin integrator."""
     system = create_test_system()
+    # Test that we create a default random generator:
     integrator = LangevinOverdamped(
         timestep=0.002,
         gamma=0.3,
-        rgen=FakeRandomGenerator(seed=1),
         beta=1.0,
+    )
+    assert integrator.rgen is not None
+
+    integrator = LangevinOverdamped(
+        timestep=0.002,
+        gamma=0.3,
+        beta=1.0,
+        rgen=FakeRandomGenerator(seed=1),
     )
     for i in range(51):
         assert (
