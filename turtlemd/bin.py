@@ -1,11 +1,15 @@
 """Command line execution of TurtleMD."""
 import argparse
+import logging
 
 from turtlemd.inout.settings import (
     create_system_from_settings,
     read_settings_file,
 )
 from turtlemd.version import __version__
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.NullHandler())
 
 
 def main():
@@ -30,8 +34,9 @@ def main():
     )
     args = parser.parse_args()
 
+    LOGGER.info(f"Reading settings from file {args.input_file}")
     settings = read_settings_file(args.input_file)
     system = create_system_from_settings(settings)
-    print(system)
+    LOGGER.info(f"Created system {system}")
 
     return settings
