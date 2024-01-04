@@ -7,6 +7,7 @@ from turtlemd.inout.settings import (
     create_system_from_settings,
     read_settings_file,
 )
+from turtlemd.simulation import MDSimulation
 from turtlemd.version import __version__
 
 LOGGER = logging.getLogger(__name__)
@@ -42,4 +43,11 @@ def main():
     integrator = create_integrator_from_settings(settings)
     LOGGER.info(f"Created integrator {integrator}")
 
-    return settings
+    simulation = MDSimulation(
+        system=system,
+        integrator=integrator,
+        steps=settings["md"]["steps"],
+        start=0,
+    )
+
+    return settings, simulation

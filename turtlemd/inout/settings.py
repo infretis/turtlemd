@@ -5,12 +5,13 @@ import logging
 import pathlib
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
 import toml
 
 from turtlemd.inout.common import generic_factory
-from turtlemd.inout.xyz import particles_from_xyz_file
+from turtlemd.inout.xyz import configuration_from_xyz_file
 from turtlemd.integrators import INTEGRATORS, MDIntegrator
-from turtlemd.system import Box, System
+from turtlemd.system import Box, Particles, System
 from turtlemd.system.box import TriclinicBox
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -76,34 +77,115 @@ def create_box_from_settings(settings: dict[str, Any]) -> Box | TriclinicBox:
     return Box(**settings["box"])
 
 
-def create_integrator_from_settings(
-    settings: dict[str, Any]
-) -> MDIntegrator | None:
+def create_integrator_from_settings(settings: dict[str, Any]) -> MDIntegrator:
     """Create an integrator from settings."""
     return generic_factory(
         settings["integrator"], INTEGRATORS, name="integrator"
     )
 
 
-def create_system_from_settings(settings: dict[str, Any]) -> System:
-    """Create a system from the given settings."""
-    xyz_filename = pathlib.Path(settings["particles"]["file"])
+def look_for_file(settings: dict[str, Any], filename: str) -> pathlib.Path:
+    """Find the file from a give input string."""
+    file_path = pathlib.Path(filename)
 
-    if xyz_filename.is_absolute() and xyz_filename.is_file():
-        xyz_file = xyz_filename
+    if file_path.is_absolute() and file_path.is_file():
+        return file_path
     else:
         base_dir = settings["settings"]["directory"]
-        xyz_file = (base_dir / xyz_filename).resolve()
-        if not xyz_file.is_file():
-            msg = "Coordinate file %s not found."
-            LOGGER.critical(msg, xyz_file)
-            raise FileNotFoundError(msg, xyz_file)
+        file_path = (base_dir / file_path).resolve()
+        if not file_path.is_file():
+            msg = "File %s not found."
+            LOGGER.critical(msg, file_path)
+            raise FileNotFoundError(msg, file_path)
+    return file_path
 
+
+def get_particle_data_from_settings(
+    settings: dict[str, Any],
+    dict_key: str,
+    list_key: str,
+    file_key: str,
+    dtype: type = float,
+) -> tuple[dict[str, int], np.ndarray | None]:
+    """Get masses or types from the settings."""
+    data_dict = settings["particles"].get(dict_key, {})
+
+    data_list = settings["particles"].get(list_key)
+    if data_list:
+        data_list = np.array(data_list, dtype=dtype)
+
+    if file_key in settings["particles"]:
+        filename = look_for_file(settings, settings["particles"][file_key])
+        data_list = np.loadtxt(filename, dtype=dtype)
+
+    return data_dict, data_list
+
+
+def create_particles_from_settings(
+    settings: dict[str, Any], dim: int = 3
+) -> Particles:
+    """Create particles from settings.
+
+    Args:
+        settings: The settings to create particles from.
+        dim: The dimensionality of the system.
+    """
+    particles = Particles(dim=dim)
+
+    xyz_file = look_for_file(settings, settings["particles"]["file"])
     msg = "Loading initial coordinates from file: %s"
     LOGGER.info(msg, xyz_file)
+    atoms, pos, vel, force = configuration_from_xyz_file(xyz_file, dim=dim)
+
+    mass_dict, mass_list = get_particle_data_from_settings(
+        settings,
+        dict_key="masses",
+        list_key="mass_list",
+        file_key="mass_file",
+        dtype=float,
+    )
+    type_dict, type_list = get_particle_data_from_settings(
+        settings,
+        dict_key="types",
+        list_key="type_list",
+        file_key="type_file",
+        dtype=float,
+    )
+
+    if not type_dict:
+        type_dict = {atom: idx for idx, atom in enumerate(set(atoms))}
+
+    for i, (atomi, posi, veli, forcei) in enumerate(
+        zip(atoms, pos, vel, force)
+    ):
+        if mass_list is not None:
+            massi = mass_list[i]
+        else:
+            massi = mass_dict.get(atomi, 1.0)
+        if type_list is not None:
+            typei = type_list[i]
+        else:
+            typei = type_dict.get(atomi, -1)
+        particles.add_particle(
+            pos=posi,
+            vel=veli,
+            force=forcei,
+            mass=massi,
+            name=atomi,
+            ptype=typei,
+        )
+    return particles
+
+
+def create_system_from_settings(settings: dict[str, Any]) -> System:
+    """Create a system from the given settings."""
+    # Set up the box:
+    box = create_box_from_settings(settings)
+
+    particles = create_particles_from_settings(settings, dim=box.dim)
 
     system = System(
-        box=create_box_from_settings(settings),
-        particles=particles_from_xyz_file(xyz_file),
+        box=box,
+        particles=particles,
     )
     return system

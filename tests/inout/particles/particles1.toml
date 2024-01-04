@@ -1,0 +1,15 @@
+[box]
+periodic = [true, true, true]
+low = [0.0, 0.0, 0.0]
+high = [1.0, 1.0, 1.0]
+
+[particles]
+file = "../config/start.xyz"
+
+[particles.masses]
+A = 2.0
+B = 10.0
+
+[particles.types]
+A = 9
+B = 55

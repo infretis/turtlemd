@@ -9,6 +9,7 @@ import pytest
 from turtlemd.inout.settings import (
     create_box_from_settings,
     create_integrator_from_settings,
+    create_particles_from_settings,
     create_system_from_settings,
     read_settings_file,
     search_for_setting,
@@ -120,3 +121,35 @@ def test_create_system(tmp_path: pathlib.PosixPath):
         new_file = (tmp_path / "missing_file.xyz").resolve()
         settings["particles"] = {"file": new_file}
         create_system_from_settings(settings)
+
+
+def help_with_particles(settings_file):
+    """Help with creating the particles."""
+    settings = read_settings_file(settings_file)
+    box = create_box_from_settings(settings)
+    return create_particles_from_settings(settings, dim=box.dim)
+
+
+def test_create_particles():
+    """Test that we can create particles."""
+    particles = help_with_particles(HERE / "system.toml")
+    correct = np.array([[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]])
+    assert pytest.approx(particles.pos) == correct
+
+    particles = help_with_particles(HERE / "particles" / "particles1.toml")
+    assert pytest.approx(particles.mass[0][0]) == 2.0
+    assert pytest.approx(particles.mass[1][0]) == 10.0
+    assert particles.ptype[0] == 9
+    assert particles.ptype[1] == 55
+
+    particles = help_with_particles(HERE / "particles" / "particles2.toml")
+    assert pytest.approx(particles.mass[0][0]) == 10.0
+    assert pytest.approx(particles.mass[1][0]) == 40.0
+    assert particles.ptype[0] == 99
+    assert particles.ptype[1] == 101
+
+    particles = help_with_particles(HERE / "particles" / "particles3.toml")
+    assert pytest.approx(particles.mass[0][0]) == 123.0
+    assert pytest.approx(particles.mass[1][0]) == 456.0
+    assert particles.ptype[0] == 33
+    assert particles.ptype[1] == 77

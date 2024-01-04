@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 
 from turtlemd.inout.xyz import (
+    configuration_from_xyz_file,
     pad_to_nd,
-    particles_from_xyz_file,
     read_xyz_file,
     system_to_xyz,
 )
@@ -61,40 +61,28 @@ def test_malformed_xyz(caplog):
             assert "Could not read the number of atoms" in caplog.text
 
 
-def test_particles_from_xyz():
-    """Test that we can create particles from a given xyz-file."""
+def test_configuration_from_xyz():
+    """Test that we can read configurations from a given xyz-file."""
     xyz_file = XYZDIR / "config.xyz"
-    # Set up some masses:
-    masses = {
-        "O": 16.0,
-        "Hf": 178.49,
-        "Ba": 137.33,
-    }
-    particles = particles_from_xyz_file(xyz_file, dim=3, masses=masses)
-    assert list(particles.name) == ["Ba", "Hf", "O", "O", "O"]
-    assert pytest.approx(particles.pos) == CORRECT_XYZ
-    mass_table = np.array([137.33, 178.49, 16.0, 16.0, 16.0]).reshape(5, 1)
-    assert pytest.approx(particles.mass) == mass_table
-    assert particles.ptype[0] != particles.ptype[1]
-    assert particles.ptype[0] != particles.ptype[2]
-    assert particles.ptype[2] == particles.ptype[3]
-    assert particles.ptype[2] == particles.ptype[4]
+    atoms, pos, _, _ = configuration_from_xyz_file(xyz_file, dim=3)
+    assert atoms == ["Ba", "Hf", "O", "O", "O"]
+    assert pytest.approx(pos) == CORRECT_XYZ
     # Test what happens if we use a 2D system:
-    particles = particles_from_xyz_file(xyz_file, dim=2)
-    assert particles.pos.shape == (5, 2)
-    assert pytest.approx(particles.vel) == np.zeros((5, 2))
+    _, pos, vel, _ = configuration_from_xyz_file(xyz_file, dim=2)
+    assert pos.shape == (5, 2)
+    assert pytest.approx(vel) == np.zeros((5, 2))
     xyz_file = XYZDIR / "config2D.xyz"
-    particles = particles_from_xyz_file(xyz_file, dim=2)
-    assert particles.pos.shape == (5, 2)
+    _, pos, _, _ = configuration_from_xyz_file(xyz_file, dim=2)
+    assert pos.shape == (5, 2)
     # Test what happens if we have more columns:
     xyz_file = XYZDIR / "traj.xyz"
-    particles = particles_from_xyz_file(xyz_file, dim=3)
-    assert pytest.approx(particles.pos) == np.full((3, 3), 500)
-    assert pytest.approx(particles.vel) == np.full((3, 3), 500)
-    particles = particles_from_xyz_file(xyz_file, dim=2)
-    assert pytest.approx(particles.pos) == np.full((3, 2), 500)
-    assert pytest.approx(particles.vel) == np.full((3, 2), 500)
-    assert pytest.approx(particles.force) == np.full((3, 2), 500)
+    _, pos, vel, _ = configuration_from_xyz_file(xyz_file, dim=3)
+    assert pytest.approx(pos) == np.full((3, 3), 500)
+    assert pytest.approx(vel) == np.full((3, 3), 500)
+    _, pos, vel, force = configuration_from_xyz_file(xyz_file, dim=2)
+    assert pytest.approx(pos) == np.full((3, 2), 500)
+    assert pytest.approx(vel) == np.full((3, 2), 500)
+    assert pytest.approx(force) == np.full((3, 2), 500)
 
 
 def test_pad_to_nd():
@@ -137,8 +125,8 @@ def test_system_to_xyz(tmp_path: pathlib.PosixPath):
     system = create_test_system()
     xyz_file = (tmp_path / "system.xyz").resolve()
     system_to_xyz(system, xyz_file)
-    particles = particles_from_xyz_file(xyz_file)
-    assert pytest.approx(particles.pos) == system.particles.pos
+    _, pos, _, _ = configuration_from_xyz_file(xyz_file)
+    assert pytest.approx(pos) == system.particles.pos
     positions = [system.particles.pos.copy()]
     # Test that we can append to a file to create two frames:
     system.particles.pos += 1.234
@@ -160,12 +148,12 @@ def test_system_to_xyz_2dim(tmp_path: pathlib.PosixPath):
     system = create_test_system(lattice="sq2")
     xyz_file = (tmp_path / "systemsq2.xyz").resolve()
     system_to_xyz(system, xyz_file)
-    particles = particles_from_xyz_file(xyz_file)
-    assert pytest.approx(particles.pos[:, 0]) == system.particles.pos[:, 0]
-    assert pytest.approx(particles.pos[:, 1]) == system.particles.pos[:, 1]
-    assert particles.pos.shape == (18, 3)
+    _, pos, _, _ = configuration_from_xyz_file(xyz_file)
+    assert pytest.approx(pos[:, 0]) == system.particles.pos[:, 0]
+    assert pytest.approx(pos[:, 1]) == system.particles.pos[:, 1]
+    assert pos.shape == (18, 3)
     assert system.particles.pos.shape == (18, 2)
-    assert pytest.approx(particles.pos[:, 2]) == np.zeros(18)
+    assert pytest.approx(pos[:, 2]) == np.zeros(18)
 
     # For 1D:
     box = Box(periodic=[False])
@@ -180,6 +168,6 @@ def test_system_to_xyz_2dim(tmp_path: pathlib.PosixPath):
         system_1d = System(box=box, particles=particles)
         xyz_file = (tmp_path / "system1D.xyz").resolve()
         system_to_xyz(system_1d, xyz_file)
-        particles_read = particles_from_xyz_file(xyz_file)
-        pos1 = particles_read.pos[:, 0]
+        _, pos, _, _ = configuration_from_xyz_file(xyz_file)
+        pos1 = pos[:, 0]
         assert pytest.approx(pos1) == system_1d.particles.pos.flatten()

@@ -10,8 +10,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from turtlemd.system.particles import Particles
-
 if TYPE_CHECKING:  # pragma: no cover
     from turtlemd.system import System
 
@@ -73,23 +71,19 @@ def read_xyz_file(filename: str | pathlib.Path) -> Iterator[Snapshot]:
         yield snapshot
 
 
-def particles_from_xyz_file(
+def configuration_from_xyz_file(
     filename: str | pathlib.Path,
     dim: int = 3,
-    masses: dict[str, float] | None = None,
-) -> Particles:
-    """Create particles from a given xyz-file.
+) -> tuple[list[str], np.ndarray, np.ndarray, np.ndarray]:
+    """Get atoms, positions, velocities, and forces from a xyz-file.
 
     Args:
-        dim: The number of dimensions to consider.
-        masses: dict[str, float]
+        filename: The file to read the configuration from.
+        dim: The number of dimensions.
     """
-    if masses is None:
-        masses = {}
     snapshot = next(read_xyz_file(filename))
-    particles = Particles(dim=dim)
-    # We will just assign particle types from the atom name:
-    ptypes = {atom: idx for idx, atom in enumerate(set(snapshot.atoms))}
+    atoms, positions, velocities, forces = [], [], [], []
+
     for atom, xyz in zip(snapshot.atoms, snapshot.xyz):
         pos = xyz[:dim]
         vel = None
@@ -97,19 +91,15 @@ def particles_from_xyz_file(
         if len(xyz) > dim:
             vel = xyz[dim : dim * 2]
             if len(vel) != len(pos):
-                vel = None
+                vel = np.zeros_like(pos)
             force = xyz[dim * 2 : dim * 3]
             if len(force) != len(pos):
-                force = None
-        particles.add_particle(
-            pos=pos,
-            vel=vel,
-            force=force,
-            mass=masses.get(atom, 1.0),
-            name=atom,
-            ptype=ptypes.get(atom, -1),
-        )
-    return particles
+                force = np.zeros_like(pos)
+        atoms.append(atom)
+        positions.append(pos)
+        velocities.append(vel)
+        forces.append(force)
+    return atoms, np.array(positions), np.array(velocities), np.array(forces)
 
 
 def system_to_xyz(

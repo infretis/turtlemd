@@ -19,7 +19,7 @@ def generic_factory(
     settings: dict[str, Any],
     registry: dict[str, type],
     name: str = "generic",
-) -> Any | None:
+) -> Any:
     """Create an instance of a class based on the given settings.
 
     Args:

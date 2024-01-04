@@ -14,6 +14,12 @@ timestep = 0.005
 [particles]
 file = "config/start.xyz"
 
+[particles.masses]
+Ar = 1.0
+
+[particles.types]
+Ar = 1
+
 # Periodic boundary conditions:
 [box]
 periodic = true
