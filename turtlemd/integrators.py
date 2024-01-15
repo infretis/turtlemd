@@ -6,8 +6,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 import numpy as np
-from numpy.random import Generator, default_rng
+from numpy.random import Generator
 
+from turtlemd.random import create_random_generator
 from turtlemd.system.system import System
 
 LOGGER = logging.getLogger(__name__)
@@ -151,7 +152,7 @@ class LangevinOverdamped(MDIntegrator):
         gamma: float,
         beta: float,
         rgen: Generator | None = None,
-        seed: int = 0,
+        seed: int | None = None,
     ):
         """Set up the overdamped Langevin integrator."""
         super().__init__(
@@ -162,7 +163,7 @@ class LangevinOverdamped(MDIntegrator):
         self.gamma = gamma
         self.sigma = 0.0
         if rgen is None:
-            self.rgen = default_rng(seed=seed)
+            self.rgen = create_random_generator(seed=seed)
         else:
             self.rgen = rgen
         self.bddt = 0.0
@@ -240,7 +241,7 @@ class LangevinInertia(MDIntegrator):
         gamma: float,
         beta: float,
         rgen: Generator | None = None,
-        seed: int = 0,
+        seed: int | None = None,
     ):
         """Set up the Langevin integrator."""
         super().__init__(
@@ -250,7 +251,7 @@ class LangevinInertia(MDIntegrator):
         )
         self.gamma = gamma
         if rgen is None:
-            self.rgen = default_rng(seed=seed)
+            self.rgen = create_random_generator(seed=seed)
         else:
             self.rgen = rgen
         self.beta = beta

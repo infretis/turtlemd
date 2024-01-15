@@ -181,13 +181,14 @@ def kinetic_energy(particles: Particles) -> tuple[np.ndarray, float]:
 def kinetic_temperature(
     particles: Particles,
     boltzmann: float,
-    dof: list[float] | None = None,
+    dof: np.ndarray | list[float] | None = None,
     kin_tensor: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Calculate the kinetic temperature of a collection of particles.
 
     Args:
-        boltzmann: This is the Boltzmann factor/constant in correct units.
+        particles: The particles to calculate the kinetic temperature of.
+        boltzmann: This is the Boltzmann constant in simulation units.
         dof: The degrees of freedom to subtract. Its shape should
             be equal to the number of dimensions.
         kin_tensor: The kinetic energy tensor. If the kinetic energy
@@ -237,7 +238,7 @@ def generate_maxwell_velocities(
     rgen: Generator,
     temperature: float = 1.0,
     boltzmann: float = 1.0,
-    dof: list[float] | None = None,
+    dof: np.ndarray | list[float] | None = None,
     momentum: bool = True,
 ):
     """Generate velocities from a Maxwell distribution.
@@ -258,8 +259,7 @@ def generate_maxwell_velocities(
         particles: The particles we will set the velocity for.
         rgen: The random number generator used for drawing velocities.
         temperature: The desired temperature.
-        boltzmann: This is the Boltzmann factor/constant in
-            correct units.
+        boltzmann: This is the Boltzmann constant in simulation units.
         dof: The degrees of freedom to subtract. Its shape should
             be equal to the number of dimensions.
         momentum: If False, we will not zero the linear momentum.

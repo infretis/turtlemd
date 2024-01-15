@@ -28,8 +28,8 @@ class Thermo(TypedDict):
 class System:
     """A system the MD is run on.
 
-    The system bridges some other objects together, like the particles
-    and the box.
+    A system consist of a simulation box, the particles, and the
+    potential functions.
 
     """
 
@@ -124,10 +124,15 @@ class System:
         )
         thermo["pressure"] = pressure
 
-        dof = getattr(self.box, "dof", None)
+        dof = self.dof()
         temp, _, _ = kinetic_temperature(particles, boltzmann, dof=dof)
         thermo["temperature"] = float(temp)
         return thermo
+
+    def dof(self) -> np.ndarray | None:
+        """Extract the degrees of freedom of the system."""
+        dof = getattr(self.box, "dof", None)
+        return dof
 
     def __str__(self):
         """Write some info about the system."""

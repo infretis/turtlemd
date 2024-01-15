@@ -11,8 +11,10 @@ import toml
 from turtlemd.inout.common import generic_factory
 from turtlemd.inout.xyz import configuration_from_xyz_file
 from turtlemd.integrators import INTEGRATORS, MDIntegrator
+from turtlemd.random import create_random_generator
 from turtlemd.system import Box, Particles, System
 from turtlemd.system.box import TriclinicBox
+from turtlemd.system.particles import generate_maxwell_velocities
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -177,15 +179,32 @@ def create_particles_from_settings(
     return particles
 
 
+def create_velocities(settings: dict[str, Any], system: System) -> None:
+    """Create velocities for the particles in a system."""
+    vel_settings = settings.get("particles", {}).get("velocity")
+    if vel_settings is None:
+        return
+
+    rgen = create_random_generator(seed=vel_settings.get("seed"))
+
+    generate_maxwell_velocities(
+        system.particles,
+        rgen,
+        temperature=vel_settings["temperature"],
+        boltzmann=1.0,
+        dof=system.dof(),
+        momentum=vel_settings["momentum"],
+    )
+
+
 def create_system_from_settings(settings: dict[str, Any]) -> System:
     """Create a system from the given settings."""
     # Set up the box:
     box = create_box_from_settings(settings)
-
     particles = create_particles_from_settings(settings, dim=box.dim)
-
     system = System(
         box=box,
         particles=particles,
     )
+    create_velocities(settings, system)
     return system

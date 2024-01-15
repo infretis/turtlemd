@@ -1,5 +1,6 @@
 [settings]
 directory = "." # Current directory
+units = "lj"
 
 [md]
 steps = 1000
@@ -11,6 +12,11 @@ high = [1.0, 1.0, 1.0]
 
 [particles]
 file = "initial.xyz"
+
+[particles.velocity]
+temperature = 1.0
+momentum = true
+seed = 1
 
 [integrator]
 class = "VelocityVerlet"
