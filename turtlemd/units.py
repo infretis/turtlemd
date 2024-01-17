@@ -69,6 +69,7 @@ class UnitSystem:
             self.time_factor = 1.0 / self.time_fs.to(input_time_unit).magnitude
 
     def __str__(self):
+        """Return information on values and units as text."""
         msg = [
             f'# Unit system "{self.name}"',
             f"\t* Time: {self.time_fs}",
