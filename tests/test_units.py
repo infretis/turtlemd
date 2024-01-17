@@ -1,7 +1,7 @@
 import pytest
 from pint import Quantity
 from scipy.constants import Avogadro as AVOGADRO  # type: ignore
-from scipy.constants import Boltzmann as BOLTZMANN  # type: ignore
+from scipy.constants import Boltzmann as BOLTZMANN
 
 from turtlemd.units import UnitSystem
 

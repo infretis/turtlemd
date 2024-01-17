@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from pint import UnitRegistry
 from scipy.constants import Avogadro as AVOGADRO  # type: ignore
-from scipy.constants import Boltzmann as BOLTZMANN  # type: ignore
+from scipy.constants import Boltzmann as BOLTZMANN
 
 if TYPE_CHECKING:  # pragma: no cover
     from pint.facets.plain.quantity import PlainQuantity
