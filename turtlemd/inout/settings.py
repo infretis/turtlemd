@@ -31,7 +31,7 @@ def read_settings_file(settings_file: pathlib.Path | str) -> dict[str, Any]:
     default = toml.load(DEFAULT)
     settings = toml.load(settings_file)
     settings = deep_update(default, settings)
-    settings["settings"]["directory"] = settings_file.resolve().parent
+    settings["run"]["directory"] = settings_file.resolve().parent
     return settings
 
 
@@ -93,7 +93,7 @@ def look_for_file(settings: dict[str, Any], filename: str) -> pathlib.Path:
     if file_path.is_absolute() and file_path.is_file():
         return file_path
     else:
-        base_dir = settings["settings"]["directory"]
+        base_dir = settings["run"]["directory"]
         file_path = (base_dir / file_path).resolve()
         if not file_path.is_file():
             msg = "File %s not found."
@@ -191,7 +191,7 @@ def create_velocities(settings: dict[str, Any], system: System) -> None:
         system.particles,
         rgen,
         temperature=vel_settings["temperature"],
-        boltzmann=1.0,
+        boltzmann=system.units.boltzmann,
         dof=system.dof(),
         momentum=vel_settings["momentum"],
     )
@@ -205,6 +205,7 @@ def create_system_from_settings(settings: dict[str, Any]) -> System:
     system = System(
         box=box,
         particles=particles,
+        units=settings["system"]["units"],
     )
     create_velocities(settings, system)
     return system

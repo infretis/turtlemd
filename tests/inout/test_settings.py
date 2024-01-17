@@ -121,6 +121,16 @@ def test_create_system(tmp_path: pathlib.PosixPath):
         new_file = (tmp_path / "missing_file.xyz").resolve()
         settings["particles"] = {"file": new_file}
         create_system_from_settings(settings)
+    # Test with units:
+    settings_file = HERE / "system_units1.toml"
+    settings = read_settings_file(settings_file)
+    system = create_system_from_settings(settings)
+    assert system.units.name == "real"
+    # Test with units that does not exist:
+    settings_file = HERE / "system_units2.toml"
+    settings = read_settings_file(settings_file)
+    with pytest.raises(KeyError):
+        system = create_system_from_settings(settings)
 
 
 def help_with_particles(settings_file):

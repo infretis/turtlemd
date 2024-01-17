@@ -1,9 +1,15 @@
-[settings]
-directory = "." # Current directory
-units = "lj"
+[run]
+directory = "."
 
 [md]
 steps = 1000
+
+[integrator]
+class = "VelocityVerlet"
+timestep = 0.005
+
+[system]
+units = "reduced"
 
 [box]
 periodic = [true, true, true]
@@ -17,7 +23,3 @@ file = "initial.xyz"
 temperature = 1.0
 momentum = true
 seed = 1
-
-[integrator]
-class = "VelocityVerlet"
-timestep = 0.005
