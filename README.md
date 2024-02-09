@@ -3,8 +3,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/infretis/turtlemd/badge.svg?branch=main)](https://coveralls.io/github/infretis/turtlemd?branch=main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-![TurtleMD Logo](assets/logo.png)
-
 TurtleMD is a slow molecular dynamics software for testing and educational purposes.
 
 ## Features
