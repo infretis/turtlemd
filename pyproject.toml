@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "turtlemd"
-version = "2023.3.1"
+version = "2024.1"
 description = "A slow molecular dynamics library for testing"
 authors = [
     "Daniel Zhang <daniel.t.zhang@ntnu.no>",
@@ -13,6 +13,8 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 numpy = "^1.24.2"
+toml = "^0.10.2"
+pint = "^0.23"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.261"
@@ -24,6 +26,7 @@ pytest-randomly = "^3.12.0"
 jupyter-black = "^0.3.4"
 pre-commit = "^3.3.3"
 flake8 = "^6.0.0"
+types-toml = "^0.10.8.7"
 
 [tool.ruff]
 line-length = 79
@@ -38,6 +41,9 @@ target-version = ["py310", "py311", "py312"]
 warn_unused_ignores = true
 show_error_codes = true
 plugins = "numpy.typing.mypy_plugin"
+
+[tool.poetry.scripts]
+turtlemd = "turtlemd.bin:main"
 
 [build-system]
 requires = ["poetry-core"]

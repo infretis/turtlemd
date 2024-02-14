@@ -1,0 +1,9 @@
+[box]
+periodic = [true, true, true]
+low = [0.0, 0.0, 0.0]
+high = [1.0, 1.0, 1.0]
+
+[particles]
+file = "../config/start.xyz"
+mass_file = "masses.txt"
+type_file = "types.txt"

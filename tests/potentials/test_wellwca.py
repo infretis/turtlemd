@@ -85,7 +85,7 @@ def test_activate():
 
 
 def test_potential():
-    """Test that we can calulate the potential energy correctly."""
+    """Test that we calculate the potential energy correctly."""
     system = create_system()
     pot = DoubleWellPair(types=(0, 0))
     pot.set_parameters(PARAMETERS)

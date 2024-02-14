@@ -127,7 +127,7 @@ def test_md_simulation():
     traj = np.load(HERE / "md-traj.npy")
     # Accumulate energies:
     for i, systemi in enumerate(simulation.run()):
-        therm = systemi.thermo(boltzmann=1)
+        therm = systemi.thermo()
         assert (
             pytest.approx(therm["temperature"])
             == CORRECT_ENERGIES["temperature"][i]

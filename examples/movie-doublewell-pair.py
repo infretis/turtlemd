@@ -13,7 +13,6 @@ from turtlemd.system.particles import generate_maxwell_velocities
 from turtlemd.tools import generate_lattice
 
 sns.set_context("talk", font_scale=0.8)
-# matplotlib.rcParams.update({'font.size': 10})
 
 
 def create_system() -> System:

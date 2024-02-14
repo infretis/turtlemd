@@ -1,0 +1,16 @@
+[box]
+periodic = [true, true, true]
+low = [0.0, 0.0, 0.0]
+high = [1.0, 1.0, 1.0]
+
+[system]
+file = "system"
+
+[particles]
+file = "particles"
+
+[system.particles]
+file = "system.particles"
+
+[x.y.z.w]
+file = "x.y.z.w"

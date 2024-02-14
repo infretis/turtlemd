@@ -1,0 +1,40 @@
+# Molecular Dynamics Configuration
+
+# Basic MD settings
+[md]
+total_steps = 200  # Total simulation steps
+temperature = 298.15  # Kelvin
+
+# Integrator settings
+[integrator]
+class = "VelocityVerlet"
+timestep = 0.005
+
+# Initial structure file:
+[particles]
+file = "config/start.xyz"
+
+[particles.masses]
+Ar = 1.0
+
+[particles.types]
+Ar = 1
+
+# Periodic boundary conditions:
+[box]
+periodic = true
+high = [10.0, 10.0, 10.0]
+
+# Potential/Forcefield settings
+[potential]
+type = "Lennard-Jones"  # Could also be "AMBER", "CHARMM", etc.
+
+  [potential.parameters]
+  epsilon = 1.0  # LJ epsilon parameter (for Lennard-Jones potential)
+  sigma = 3.40  # LJ sigma parameter (for Lennard-Jones potential)
+  cut = 2.5  # Cut-off for the potential
+
+# Output settings:
+[output]
+trajectory_file = "traj.xyz"
+log_file = "md.log"

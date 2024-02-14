@@ -1,15 +1,34 @@
 """Definition of time integrators."""
+from __future__ import annotations
+
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 import numpy as np
-from numpy.random import Generator, default_rng
+from numpy.random import Generator
 
+from turtlemd.random import create_random_generator
 from turtlemd.system.system import System
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
+
+
+INTEGRATORS = {}
+
+
+def register_integrator(name=None):
+    """Register integrators in the global registry."""
+
+    def decorator(cls):
+        nonlocal name
+        if name is None:
+            name = cls.__name__
+        INTEGRATORS[name.lower()] = cls
+        return cls
+
+    return decorator
 
 
 class MDIntegrator(ABC):
@@ -30,9 +49,11 @@ class MDIntegrator(ABC):
         """Integrate the system a single time step."""
 
     def __call__(self, system: System):
+        """Perform the integration step."""
         return self.integration_step(system)
 
 
+@register_integrator()
 class Verlet(MDIntegrator):
     """The Verlet integrator."""
 
@@ -41,6 +62,7 @@ class Verlet(MDIntegrator):
     previous_pos: np.ndarray | None  # Positions at the previous step.
 
     def __init__(self, timestep: float):
+        """Set up the Verlet integrator."""
         super().__init__(
             timestep=timestep,
             description="Verlet integrator",
@@ -51,6 +73,7 @@ class Verlet(MDIntegrator):
         self.previous_pos = None
 
     def integration_step(self, system: System):
+        """Do one step with the Verlet integrator."""
         particles = system.particles
         if self.previous_pos is None:
             self.previous_pos = particles.pos - particles.vel * self.timestep
@@ -68,12 +91,14 @@ class Verlet(MDIntegrator):
         system.potential_and_force()
 
 
+@register_integrator()
 class VelocityVerlet(MDIntegrator):
     """The Velocity Verlet integrator."""
 
     half_timestep: float  # Half of the time step
 
     def __init__(self, timestep: float):
+        """Set ut the Velocity Verlet integrator."""
         super().__init__(
             timestep=timestep,
             description="Velocity Verlet integrator",
@@ -82,6 +107,7 @@ class VelocityVerlet(MDIntegrator):
         self.half_timestep = self.timestep * 0.5
 
     def integration_step(self, system: System):
+        """Do one integration step with the Velocity Verlet integrator."""
         particles = system.particles
         imass = particles.imass
         # Update velocity
@@ -94,6 +120,7 @@ class VelocityVerlet(MDIntegrator):
         particles.vel += self.half_timestep * particles.force * imass
 
 
+@register_integrator()
 class LangevinOverdamped(MDIntegrator):
     """Overdamped version of the Langevin integrator.
 
@@ -120,8 +147,14 @@ class LangevinOverdamped(MDIntegrator):
     _initiate: bool  # If True, we still need to set some parameters
 
     def __init__(
-        self, timestep: float, gamma: float, rgen: Generator, beta: float
+        self,
+        timestep: float,
+        gamma: float,
+        beta: float,
+        rgen: Generator | None = None,
+        seed: int | None = None,
     ):
+        """Set up the overdamped Langevin integrator."""
         super().__init__(
             timestep=timestep,
             description="Langevin overdamped integrator",
@@ -129,7 +162,10 @@ class LangevinOverdamped(MDIntegrator):
         )
         self.gamma = gamma
         self.sigma = 0.0
-        self.rgen = rgen
+        if rgen is None:
+            self.rgen = create_random_generator(seed=seed)
+        else:
+            self.rgen = rgen
         self.bddt = 0.0
         self.beta = beta
         self._initiate = True
@@ -177,6 +213,7 @@ class LangevinParameter:
     cho: list[np.ndarray] = field(default_factory=list)
 
 
+@register_integrator()
 class LangevinInertia(MDIntegrator):
     """The `Langevin`_ integrator.
 
@@ -204,16 +241,17 @@ class LangevinInertia(MDIntegrator):
         gamma: float,
         beta: float,
         rgen: Generator | None = None,
-        seed: int = 0,
+        seed: int | None = None,
     ):
+        """Set up the Langevin integrator."""
         super().__init__(
             timestep=timestep,
-            description="Langevin overdamped integrator",
+            description="Langevin integrator",
             dynamics="stochastic",
         )
         self.gamma = gamma
         if rgen is None:
-            self.rgen = default_rng(seed=seed)
+            self.rgen = create_random_generator(seed=seed)
         else:
             self.rgen = rgen
         self.beta = beta
@@ -284,7 +322,7 @@ class LangevinInertia(MDIntegrator):
     def draw_random_numbers(
         self, system: System
     ) -> tuple[np.ndarray, np.ndarray]:
-        """This method draws random numbers for the integration step."""
+        """Draws random numbers for the integration step."""
         particles = system.particles
         dim = particles.dim
         pos_rand = np.zeros_like(particles.pos)

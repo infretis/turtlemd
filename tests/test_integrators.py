@@ -5,6 +5,7 @@ from numpy.random import Generator, default_rng
 
 import turtlemd.integrators
 from turtlemd.integrators import (
+    INTEGRATORS,
     LangevinInertia,
     LangevinOverdamped,
     LangevinParameter,
@@ -483,11 +484,19 @@ def test_verlet():
 def test_langevin_brownian():
     """Test the overdamped Langevin integrator."""
     system = create_test_system()
+    # Test that we create a default random generator:
     integrator = LangevinOverdamped(
         timestep=0.002,
         gamma=0.3,
-        rgen=FakeRandomGenerator(seed=1),
         beta=1.0,
+    )
+    assert integrator.rgen is not None
+
+    integrator = LangevinOverdamped(
+        timestep=0.002,
+        gamma=0.3,
+        beta=1.0,
+        rgen=FakeRandomGenerator(seed=1),
     )
     for i in range(51):
         assert (
@@ -560,3 +569,11 @@ def test_langevin_integration(monkeypatch):
             assert pytest.approx(pos[0][0]) == TISMOL_POS_LANG[i]
             assert pytest.approx(vel[0][0]) == TISMOL_VEL_LANG[i]
             integrator(system)
+
+
+def test_integrator_registry():
+    """Test that we can access the integrator registry."""
+    assert "verlet" in INTEGRATORS
+    assert issubclass(INTEGRATORS["verlet"], Verlet)
+    vverlet = INTEGRATORS.get("velocityverlet", None)
+    assert issubclass(vverlet, VelocityVerlet)

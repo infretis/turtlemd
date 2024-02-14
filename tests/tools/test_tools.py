@@ -86,7 +86,7 @@ def test_lattice_generation():
 
 def test_lattice_special():
     """Test all the 'special' cases for lattice generation."""
-    # Test that we fail for a unknow lattice.
+    # Test that we fail for a unknown lattice.
     with pytest.raises(ValueError):
         generate_lattice(lattice="this is not a lattice!")
     # Test that we set lcon to just one and repeat to ones, if

@@ -53,7 +53,7 @@ class Potential(ABC):
     ) -> tuple[float, np.ndarray, np.ndarray]:
         """Evaluate potential & force.
 
-        It may be more efficient to do both togehter. If not changed
+        It may be more efficient to do both together. If not changed
         in the subclasses, it will just use the other functions.
         """
         vpot = self.potential(system)

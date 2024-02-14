@@ -1,0 +1,10 @@
+[system]
+units = "units-that-does-not-exist"
+
+[box]
+periodic = [true, true, true]
+low = [0.0, 0.0, 0.0]
+high = [1.0, 1.0, 1.0]
+
+[particles]
+file = "config/start.xyz"

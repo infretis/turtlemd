@@ -1,0 +1,6 @@
+[integrator]
+class = "LangevinInertia"
+timestep = 1
+gamma = 2
+beta = 3
+seed = 123

@@ -1,0 +1,25 @@
+[run]
+directory = "."
+
+[md]
+steps = 1000
+
+[integrator]
+class = "VelocityVerlet"
+timestep = 0.005
+
+[system]
+units = "reduced"
+
+[box]
+periodic = [true, true, true]
+low = [0.0, 0.0, 0.0]
+high = [1.0, 1.0, 1.0]
+
+[particles]
+file = "initial.xyz"
+
+[particles.velocity]
+temperature = 1.0
+momentum = true
+seed = 1

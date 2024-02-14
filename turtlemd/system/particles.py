@@ -1,6 +1,6 @@
 """Define a list of particles.
 
-Tha particle list collects the mass, positions, velocities,
+The particle list collects the mass, positions, velocities,
 forces, types, etc. for a collection of particles.
 """
 from collections.abc import Iterator
@@ -56,7 +56,16 @@ class Particles:
         name: str = "?",
         ptype: int = 1,
     ):
-        """Add a single particle to the particle list."""
+        """Add a single particle to the particle list.
+
+        Args:
+            pos: Particle's position.
+            vel: Particle's velocity. Defaults to zero.
+            force: Force on the particle. Defaults to zero.
+            mass: Particle's mass. Defaults to 1.0.
+            name: Name of the particle. Defaults to "?".
+            ptype: Type of the particle. Defaults to 1.
+        """
         if vel is None:
             vel = np.zeros_like(pos)
         if force is None:
@@ -79,10 +88,10 @@ class Particles:
         self.npart += 1
 
     def __iter__(self) -> Iterator[dict]:
-        """Yield the properties of the particles.
+        """Iterate over the properties of the particles.
 
         Yields:
-            out: The information in `self.pos`, `self.vel`, ... etc.
+            The information in `self.pos`, `self.vel`, ... etc.
         """
         for i, pos in enumerate(self.pos):
             part = {
@@ -97,7 +106,7 @@ class Particles:
             yield part
 
     def __len__(self) -> int:
-        """Just give the number of particles."""
+        """Return the number of particles."""
         return self.npart
 
     def __getitem__(self, key: SupportsIndex | tuple[SupportsIndex, ...]):
@@ -121,10 +130,11 @@ class Particles:
         """Iterate over all pairs of particles.
 
         Yields:
-            out[0]: The index for the first particle in the pair.
-            out[1]: The index for the second particle in the pair.
-            out[2]: The particle type of the first particle.
-            out[3]: The particle type of the second particle.
+            A tuple with
+                - the index for the first particle in the pair,
+                - the index for the second particle in the pair,
+                - the particle type of the first particle,
+                - the particle type of the second particle.
 
         """
         for i, itype in enumerate(self.ptype[:-1]):
@@ -133,7 +143,7 @@ class Particles:
 
 
 def linear_momentum(particles: Particles) -> np.ndarray:
-    """Return linear momentum of the particles."""
+    """Calculate the linear momentum of the particles."""
     return np.sum(particles.vel * particles.mass, axis=0)
 
 
@@ -171,13 +181,14 @@ def kinetic_energy(particles: Particles) -> tuple[np.ndarray, float]:
 def kinetic_temperature(
     particles: Particles,
     boltzmann: float,
-    dof: list[float] | None = None,
+    dof: np.ndarray | list[float] | None = None,
     kin_tensor: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Calculate the kinetic temperature of a collection of particles.
 
     Args:
-        boltzmann: This is the Boltzmann factor/constant in correct units.
+        particles: The particles to calculate the kinetic temperature of.
+        boltzmann: This is the Boltzmann constant in simulation units.
         dof: The degrees of freedom to subtract. Its shape should
             be equal to the number of dimensions.
         kin_tensor: The kinetic energy tensor. If the kinetic energy
@@ -187,7 +198,6 @@ def kinetic_temperature(
         out[0]: The temperature averaged over all dimensions.
         out[1]: The temperature for each spatial dimension.
         out[2]: The kinetic energy tensor.
-
     """
     ndof = particles.npart * np.ones(particles.vel[0].shape)
 
@@ -215,7 +225,6 @@ def pressure_tensor(
     Returns:
         out[0]: The symmetric pressure tensor.
         out[1] : The scalar pressure.
-
     """
     if kin_tensor is None:
         kin_tensor, _ = kinetic_energy(particles)
@@ -229,7 +238,7 @@ def generate_maxwell_velocities(
     rgen: Generator,
     temperature: float = 1.0,
     boltzmann: float = 1.0,
-    dof: list[float] | None = None,
+    dof: np.ndarray | list[float] | None = None,
     momentum: bool = True,
 ):
     """Generate velocities from a Maxwell distribution.
@@ -250,13 +259,11 @@ def generate_maxwell_velocities(
         particles: The particles we will set the velocity for.
         rgen: The random number generator used for drawing velocities.
         temperature: The desired temperature.
-        boltzmann: This is the Boltzmann factor/constant in
-            correct units.
+        boltzmann: This is the Boltzmann constant in simulation units.
         dof: The degrees of freedom to subtract. Its shape should
             be equal to the number of dimensions.
         momentum: If False, we will not zero the linear momentum.
     """
-
     vel = np.sqrt(particles.imass) * rgen.normal(
         loc=0.0, scale=1.0, size=particles.vel.shape
     )
