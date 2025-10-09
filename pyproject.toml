@@ -27,8 +27,9 @@ flake8 = "^6.0.0"
 
 [tool.ruff]
 line-length = 79
+
+[tool.ruff.lint]
 select = ["F", "E", "W", "I001", "UP"]
-ignore-init-module-imports = true
 
 [tool.black]
 line-length = 79
