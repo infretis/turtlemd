@@ -11,7 +11,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.15"
+python = ">=3.12,<3.15"
 numpy = "^1.24.2"
 
 [tool.poetry.group.dev.dependencies]
@@ -33,7 +33,7 @@ select = ["F", "E", "W", "I001", "UP"]
 
 [tool.black]
 line-length = 79
-target-version = ["py310", "py311", "py312", "py313", "py314"]
+target-version = ["py312", "py313", "py314"]
 
 [tool.mypy]
 warn_unused_ignores = true
