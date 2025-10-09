@@ -48,7 +48,7 @@ jobs:
         run: poetry run black --check turtlemd
 
       - name: "Run ruff"
-        run: poetry run ruff turtlemd
+        run: poetry run ruff check turtlemd
 
       - name: "Run mypy"
         run: poetry run mypy turtlemd
