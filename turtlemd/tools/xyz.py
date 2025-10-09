@@ -1,4 +1,5 @@
 """Methods to read particles from xyz-files."""
+
 import logging
 import pathlib
 from collections.abc import Iterator

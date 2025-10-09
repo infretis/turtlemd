@@ -1,4 +1,5 @@
 """Definition of a simulation."""
+
 from __future__ import annotations
 
 import logging

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "turtlemd"
-version = "2023.3.1"
+version = "2025.1"
 description = "A slow molecular dynamics library for testing"
 authors = [
     "Daniel Zhang <daniel.t.zhang@ntnu.no>",
@@ -11,7 +11,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
+python = ">=3.10,<3.15"
 numpy = "^1.24.2"
 
 [tool.poetry.group.dev.dependencies]
@@ -32,7 +32,7 @@ ignore-init-module-imports = true
 
 [tool.black]
 line-length = 79
-target-version = ["py310", "py311", "py312"]
+target-version = ["py310", "py311", "py312", "py313", "py314"]
 
 [tool.mypy]
 warn_unused_ignores = true

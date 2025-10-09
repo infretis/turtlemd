@@ -1,4 +1,5 @@
 """Define a simulation box."""
+
 import itertools
 import logging
 from abc import ABC, abstractmethod

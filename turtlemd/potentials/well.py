@@ -12,6 +12,7 @@ as simple models:
 * DoubleWellPair (:py:class:`.DoubleWellPair`)
     This class defines a double well pair potential.
 """
+
 import logging
 
 import numpy as np
@@ -276,9 +277,7 @@ class DoubleWellPair(Potential):
                 delta = box.pbc_dist(particles.pos[i] - particles.pos[j])
                 delr = np.sqrt(np.dot(delta, delta))
                 diff = delr - rwidth
-                forceij = (
-                    height4 * (1.0 - diff**2 / width2) * (diff / width2)
-                )
+                forceij = height4 * (1.0 - diff**2 / width2) * (diff / width2)
                 forceij = forceij * delta / delr
                 forces[i] += forceij
                 forces[j] -= forceij

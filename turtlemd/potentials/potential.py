@@ -3,6 +3,7 @@
 This module defines the generic class for potential functions.
 This class is sub-classed in all potential functions.
 """
+
 from __future__ import annotations
 
 import logging
