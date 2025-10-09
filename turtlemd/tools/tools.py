@@ -1,4 +1,5 @@
 """Some helper methods for setting up simulations."""
+
 import itertools
 
 import numpy as np

@@ -13,7 +13,7 @@ coverage-print:
 	pytest --cov-report html --cov=turtlemd -rP tests/
 
 ruff:
-	poetry run ruff turtlemd
+	poetry run ruff check turtlemd
 
 black:
 	poetry run black --check turtlemd

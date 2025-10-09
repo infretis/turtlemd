@@ -3,6 +3,7 @@
 Tha particle list collects the mass, positions, velocities,
 forces, types, etc. for a collection of particles.
 """
+
 from collections.abc import Iterator
 from typing import SupportsIndex
 

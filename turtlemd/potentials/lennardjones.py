@@ -1,4 +1,5 @@
 """Module defining a Lennard-Jones pair potential."""
+
 import itertools
 import logging
 from typing import Any
